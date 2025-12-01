@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>দোকানের হিসেব রক্ষক (লোকাল স্টোরেজ)</title>
+    <title>দোকানের হিসেব রক্ষক (সংশোধিত)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
@@ -25,128 +25,258 @@
             background: #cbd5e1; /* Tailwind slate-300 */
             border-radius: 10px;
         }
+        /* Style for the fixed login button */
+        #logout-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
     </style>
 </head>
-<body class="p-4 sm:p-6">
+<body class="p-4 sm:p-6 relative">
+    
+    <!-- Logout Button (Fixed position) -->
+    <button id="logout-button" class="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded-full shadow hover:bg-red-500 hover:text-white transition duration-150 ease-in-out hidden">
+        লগ আউট
+    </button>
+    
     <div class="container-mobile bg-white shadow-xl rounded-2xl p-4 sm:p-6">
         <header class="text-center mb-6">
-            <h1 class="text-3xl font-extrabold text-blue-600">দোকানের ক্রয় ও পেমেন্ট হিসেব (অফলাইন মোড)</h1>
+            <h1 class="text-3xl font-extrabold text-blue-600">দোকানের হিসেব রক্ষক</h1>
             <p class="text-sm text-gray-500 mt-1">আপনার সব লেনদেন এই ব্রাউজারেই সেভ হবে</p>
         </header>
 
         <!-- WARNING Section for Local Storage -->
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md" role="alert">
+        <div id="warning-message" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md hidden" role="alert">
             <p class="font-bold">গুরুত্বপূর্ণ সতর্কতা!</p>
             <p class="text-sm">এই হিসেব শুধুমাত্র আপনার **এই ব্রাউজার ও ডিভাইসে** সেভ হবে। ব্রাউজারের ক্যাশ বা ডেটা ডিলিট করলে সব হিসেব মুছে যাবে।</p>
         </div>
 
-
-        <!-- Supplier Balances Summary -->
-        <section class="mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সরবরাহকারীর বাকি হিসেব</h2>
-            <div id="balances-summary" class="space-y-3">
-                <!-- Balances will be inserted here -->
-            </div>
-            <p id="no-balances" class="text-gray-500 text-sm italic mt-2 hidden">এখনও কোনো সরবরাহকারীর হিসেব নেই।</p>
-        </section>
-        
-        <!-- New Transaction Form -->
-        <section class="mb-8 bg-blue-50 p-4 rounded-xl shadow-inner">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">নতুন লেনদেন যোগ করুন</h2>
+        <!-- Authentication Section -->
+        <div id="auth-section" class="hidden p-6 bg-gray-50 rounded-xl shadow-inner my-10">
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">লগইন করুন</h2>
+            <p class="text-center text-sm text-gray-500 mb-4">ইউজারনেম: <code class="font-mono text-blue-600">Apon</code>, পাসওয়ার্ড: <code class="font-mono text-blue-600">CEO</code></p>
             
-            <form id="transaction-form" class="space-y-4">
-                
-                <div class="flex space-x-2">
-                    <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
-                        <input type="radio" name="transactionType" value="purchase" class="form-radio text-blue-600 h-4 w-4" checked>
-                        <span class="ml-2 font-medium text-gray-700">ক্রয় (মাল কেনা)</span>
-                    </label>
-                    <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
-                        <input type="radio" name="transactionType" value="payment" class="form-radio text-green-600 h-4 w-4">
-                        <span class="ml-2 font-medium text-gray-700">পেমেন্ট (টাকা দেওয়া)</span>
-                    </label>
-                </div>
-
+            <form id="login-form" class="space-y-4">
                 <div>
-                    <label for="supplierName" class="block text-sm font-medium text-gray-700">সরবরাহকারীর নাম</label>
-                    <input type="text" id="supplierName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <label for="login-username" class="block text-sm font-medium text-gray-700">ইউজারনেম (Username)</label>
+                    <input type="text" id="login-username" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
                 <div>
-                    <label for="amount" class="block text-sm font-medium text-gray-700">টাকার পরিমাণ (Amount)</label>
-                    <input type="number" id="amount" required min="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">পাসওয়ার্ড (Password)</label>
+                    <input type="password" id="login-password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 
-                <div id="description-field" class="transition-all duration-300">
-                    <label for="description" class="block text-sm font-medium text-gray-700">পণ্যের বিবরণ (Description)</label>
-                    <textarea id="description" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="যেমন: ৫টি মোবাইল কভার, ১০ কেজি চাল"></textarea>
-                </div>
-
-                <div>
-                    <label for="transactionDate" class="block text-sm font-medium text-gray-700">তারিখ</label>
-                    <input type="date" id="transactionDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-
-                <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                    লেনদেন যোগ করুন
+                <button type="submit" id="login-submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    লগইন করুন
                 </button>
-                <div id="message-box" class="mt-3 p-3 text-sm rounded-lg text-center hidden" role="alert"></div>
+                <div id="auth-message-box" class="mt-3 p-3 text-sm rounded-lg text-center hidden" role="alert"></div>
             </form>
-        </section>
+        </div>
 
-        <!-- Transaction List -->
-        <section class="mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সাম্প্রতিক লেনদেনসমূহ</h2>
-            <div id="transaction-list" class="space-y-3">
-                <!-- Transactions will be inserted here -->
-            </div>
-            <p id="no-transactions" class="text-gray-500 text-sm italic mt-4 hidden">এখনও কোনো লেনদেন রেকর্ড করা হয়নি।</p>
-        </section>
-        
-        <!-- Data Management Buttons (Optional but helpful) -->
-        <section class="flex justify-between items-center pt-4 border-t border-gray-200">
-            <h3 class="text-lg font-bold text-gray-800">ডেটা ম্যানেজমেন্ট</h3>
-            <button id="clear-data-button" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg shadow hover:bg-red-600 transition duration-150 ease-in-out">
-                সব ডেটা মুছে ফেলুন
-            </button>
-        </section>
+        <!-- Main Application Content -->
+        <div id="app-content" class="hidden">
+            
+            <!-- Supplier Balances Summary -->
+            <section class="mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সরবরাহকারীর বাকি হিসেব</h2>
+                <div id="balances-summary" class="space-y-3">
+                    <!-- Balances will be inserted here -->
+                </div>
+                <p id="no-balances" class="text-gray-500 text-sm italic mt-2 hidden">এখনও কোনো সরবরাহকারীর হিসেব নেই।</p>
+            </section>
+            
+            <!-- New Transaction Form -->
+            <section class="mb-8 bg-blue-50 p-4 rounded-xl shadow-inner">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">নতুন লেনদেন যোগ করুন</h2>
+                
+                <form id="transaction-form" class="space-y-4">
+                    
+                    <div class="flex space-x-2">
+                        <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
+                            <input type="radio" name="transactionType" value="purchase" class="form-radio text-blue-600 h-4 w-4" checked>
+                            <span class="ml-2 font-medium text-gray-700">ক্রয় (মাল কেনা)</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
+                            <input type="radio" name="transactionType" value="payment" class="form-radio text-green-600 h-4 w-4">
+                            <span class="ml-2 font-medium text-gray-700">পেমেন্ট (টাকা দেওয়া)</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label for="supplierName" class="block text-sm font-medium text-gray-700">সরবরাহকারীর নাম</label>
+                        <input type="text" id="supplierName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="amount" class="block text-sm font-medium text-gray-700">টাকার পরিমাণ (Amount)</label>
+                        <input type="number" id="amount" required min="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div id="description-field" class="transition-all duration-300">
+                        <label for="description" class="block text-sm font-medium text-gray-700">পণ্যের বিবরণ (Description)</label>
+                        <textarea id="description" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="যেমন: ৫টি মোবাইল কভার, ১০ কেজি চাল"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="transactionDate" class="block text-sm font-medium text-gray-700">তারিখ</label>
+                        <input type="date" id="transactionDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                        লেনদেন যোগ করুন
+                    </button>
+                    <div id="message-box" class="mt-3 p-3 text-sm rounded-lg text-center hidden" role="alert"></div>
+                </form>
+            </section>
+
+            <!-- Transaction List -->
+            <section class="mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সাম্প্রতিক লেনদেনসমূহ</h2>
+                <div id="transaction-list" class="space-y-3">
+                    <!-- Transactions will be inserted here -->
+                </div>
+                <p id="no-transactions" class="text-gray-500 text-sm italic mt-4 hidden">এখনও কোনো লেনদেন রেকর্ড করা হয়নি।</p>
+            </section>
+            
+            <!-- Data Management Buttons (Optional but helpful) -->
+            <section class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800">ডেটা ম্যানেজমেন্ট</h3>
+                <button id="clear-data-button" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg shadow hover:bg-red-600 transition duration-150 ease-in-out">
+                    সব ডেটা মুছে ফেলুন
+                </button>
+            </section>
+        </div>
+
     </div>
 
-    <!-- Application Logic (No Firebase) -->
+    <!-- Application Logic (Local Storage) -->
     <script>
-        // Local Storage Keys
+        // --- Hardcoded Credentials & Keys ---
+        const USER_CREDENTIALS = {
+            username: 'Apon',
+            password: 'CEO'
+        };
         const TRANSACTION_KEY = 'shopLedgerTransactions';
         const BALANCE_KEY = 'shopLedgerBalances';
+        const LOGIN_KEY = 'isUserLoggedIn';
         
         let transactions = [];
         let balances = {}; // { supplierName: balanceAmount }
 
+        // --- Element References ---
+        const authSection = document.getElementById('auth-section');
+        const appContent = document.getElementById('app-content');
+        const logoutButton = document.getElementById('logout-button');
+        const loginForm = document.getElementById('login-form');
+        const authMessageBox = document.getElementById('auth-message-box');
+        const warningMessage = document.getElementById('warning-message');
+        const transactionForm = document.getElementById('transaction-form');
+        const descriptionInput = document.getElementById('description');
+        const transactionDateInput = document.getElementById('transactionDate');
+
+        // --- Helper Functions ---
+
+        function showMessage(message, type = 'success') {
+            const msgBox = document.getElementById('message-box');
+            msgBox.textContent = message;
+            msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+            
+            if (type === 'success') {
+                msgBox.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                msgBox.classList.add('bg-red-100', 'text-red-800');
+            }
+            
+            setTimeout(() => {
+                msgBox.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function showAuthMessage(message, type = 'success') {
+            authMessageBox.textContent = message;
+            authMessageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+            
+            if (type === 'success') {
+                authMessageBox.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                authMessageBox.classList.add('bg-red-100', 'text-red-800');
+            }
+            
+            setTimeout(() => {
+                authMessageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+
+        // --- Authentication Logic ---
+
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem(LOGIN_KEY) === 'true';
+            
+            if (isLoggedIn) {
+                // লগইন করা থাকলে
+                loadData(); // ডেটা লোড করুন
+                authSection.classList.add('hidden');
+                appContent.classList.remove('hidden');
+                logoutButton.classList.remove('hidden');
+                warningMessage.classList.remove('hidden');
+                transactionDateInput.valueAsDate = new Date(); // আজকের তারিখ সেট করা
+            } else {
+                // লগইন করা না থাকলে
+                authSection.classList.remove('hidden');
+                appContent.classList.add('hidden');
+                logoutButton.classList.add('hidden');
+                warningMessage.classList.add('hidden');
+                
+                // অ্যাপ ডেটা রেন্ডার করা বন্ধ করুন
+                document.getElementById('balances-summary').innerHTML = '';
+                document.getElementById('transaction-list').innerHTML = '';
+            }
+        }
+
+        function handleLogin(username, password) {
+            if (username === USER_CREDENTIALS.username && password === USER_CREDENTIALS.password) {
+                localStorage.setItem(LOGIN_KEY, 'true');
+                showAuthMessage("সফলভাবে লগইন করা হয়েছে!", 'success');
+                // লগইন ফর্মে মেসেজ দেখানোর জন্য সামান্য দেরি
+                setTimeout(checkLoginStatus, 1000);
+            } else {
+                showAuthMessage("ভুল ইউজারনেম বা পাসওয়ার্ড।", 'error');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.setItem(LOGIN_KEY, 'false');
+            checkLoginStatus();
+            showAuthMessage("সফলভাবে লগ আউট করা হয়েছে।");
+        }
+
+
         // --- Local Storage Functions ---
 
-        // Local Storage থেকে সেভ করা ডেটা লোড করে
         function loadData() {
             try {
                 const storedTransactions = localStorage.getItem(TRANSACTION_KEY);
                 const storedBalances = localStorage.getItem(BALANCE_KEY);
                 
+                // JSON.parse যদি null পায়, তাহলে এটি স্বয়ংক্রিয়ভাবে [] বা {} দিয়ে ইনিশিয়ালাইজ করবে।
                 transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
                 balances = storedBalances ? JSON.parse(storedBalances) : {};
                 
-                // ডেটা লোড হওয়ার পরে UI আপডেট করা
                 renderApp();
             } catch (error) {
-                console.error("Error loading data from local storage:", error);
-                showMessage("ডেটা লোড করতে সমস্যা হয়েছে। আপনার ব্রাউজার স্টোরেজ চেক করুন।", 'error');
+                console.error("ERROR: Local Storage থেকে ডেটা লোড করতে সমস্যা:", error);
+                showMessage("ডেটা লোড করতে সমস্যা হয়েছে। ব্রাউজার স্টোরেজ চেক করুন।", 'error');
             }
         }
 
-        // ডেটা লোকাল স্টোরেজে সেভ করে
         function saveData() {
             try {
                 localStorage.setItem(TRANSACTION_KEY, JSON.stringify(transactions));
                 localStorage.setItem(BALANCE_KEY, JSON.stringify(balances));
             } catch (error) {
-                console.error("Error saving data to local storage:", error);
+                console.error("ERROR: Local Storage-এ ডেটা সেভ করতে সমস্যা:", error);
                 showMessage("ডেটা সেভ করতে সমস্যা হয়েছে। স্টোরেজ ফুল থাকতে পারে।", 'error');
             }
         }
@@ -177,40 +307,27 @@
             renderApp();
 
             showMessage(isPurchase ? "ক্রয় সফলভাবে যোগ হয়েছে!" : "পেমেন্ট সফলভাবে রেকর্ড হয়েছে!", 'success');
-            document.getElementById('transaction-form').reset();
+            
+            // ফর্ম রিসেট
+            transactionForm.reset();
+            // তারিখ ও বিবরণ-এর প্রয়োজনীয়তা ঠিক রাখা
             document.getElementById('transactionDate').valueAsDate = new Date();
+            descriptionInput.required = true; // 'purchase' ডিফল্ট
         }
 
         // --- UI Rendering ---
-
-        function showMessage(message, type = 'success') {
-            const msgBox = document.getElementById('message-box');
-            msgBox.textContent = message;
-            msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
-            
-            if (type === 'success') {
-                msgBox.classList.add('bg-green-100', 'text-green-800');
-            } else {
-                msgBox.classList.add('bg-red-100', 'text-red-800');
-            }
-            
-            setTimeout(() => {
-                msgBox.classList.add('hidden');
-            }, 5000);
-        }
 
         function renderBalances() {
             const container = document.getElementById('balances-summary');
             const noBalances = document.getElementById('no-balances');
             container.innerHTML = '';
             
-            // Balances অবজেক্টকে অ্যারেতে রূপান্তর করা
             const balanceArray = Object.keys(balances)
                 .map(name => ({
                     supplierName: name,
                     balance: balances[name]
                 }))
-                .filter(item => Math.abs(item.balance) > 0.01); // খুবই কম ব্যালেন্স বাদ দেওয়া
+                .filter(item => Math.abs(item.balance) > 0.01);
 
             if (balanceArray.length === 0) {
                 noBalances.classList.remove('hidden');
@@ -258,6 +375,7 @@
                 const statusClass = isPurchase ? 'border-l-4 border-blue-500 bg-blue-50' : 'border-l-4 border-green-500 bg-green-50';
                 const typeText = isPurchase ? 'ক্রয়' : 'পেমেন্ট';
                 const amountText = tx.amount.toLocaleString('bn-BD', { style: 'currency', currency: 'BDT' });
+                // Date handling: Ensure it is a valid date object
                 const date = new Date(tx.date).toLocaleDateString('bn-BD');
                 const time = new Date(tx.timestamp).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
 
@@ -286,17 +404,31 @@
             renderTransactions();
         }
 
-        // --- Event Listeners and Initial Load ---
+        // --- Initial Load & Event Listeners ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            // ১. প্রাথমিক ডেটা লোড করা
-            loadData();
-            document.getElementById('transactionDate').valueAsDate = new Date(); // আজকের তারিখ সেট করা
+            // ১. অ্যাপ লোড হওয়ার সাথে সাথেই লগইন স্ট্যাটাস চেক করুন
+            checkLoginStatus(); 
 
-            const form = document.getElementById('transaction-form');
-            const typeRadios = form.querySelectorAll('input[name="transactionType"]');
+            // ২. ফর্ম সম্পর্কিত প্রাথমিক সেটআপ
+            document.getElementById('supplierName').focus(); // UX: ফোকাস সেট করা
+            
+            // **ফিক্স:** লোড হওয়ার সময় 'ক্রয়' ডিফল্ট থাকে, তাই বিবরণ ফিল্ড বাধ্যতামূলক করতে হবে
+            descriptionInput.required = true; 
+
+            // --- Authentication Event Listeners ---
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('login-username').value.trim();
+                const password = document.getElementById('login-password').value;
+                handleLogin(username, password);
+            });
+            
+            logoutButton.addEventListener('click', handleLogout);
+
+            // --- Main Transaction Form Event Listeners ---
+            const typeRadios = transactionForm.querySelectorAll('input[name="transactionType"]');
             const descriptionField = document.getElementById('description-field');
-            const descriptionInput = document.getElementById('description');
             const submitButton = document.getElementById('submit-button');
 
 
@@ -319,19 +451,27 @@
             });
 
 
-            form.addEventListener('submit', (e) => {
+            transactionForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
-                const formData = new FormData(form);
+                const formData = new FormData(transactionForm);
                 const type = formData.get('transactionType');
                 const supplierName = formData.get('supplierName').trim();
                 const amount = parseFloat(formData.get('amount'));
                 const description = formData.get('description').trim() || (type === 'payment' ? 'পেমেন্ট করা হয়েছে' : 'পণ্যের বিবরণ নেই');
                 const date = formData.get('transactionDate');
 
+                // নিশ্চিত করা যে সব মান ঠিক আছে
                 if (!supplierName || isNaN(amount) || amount <= 0 || !date) {
-                    showMessage("ফর্মের সব ঘর সঠিকভাবে পূরণ করুন।", 'error');
+                    showMessage("ফর্মের সব ঘর সঠিকভাবে পূরণ করুন (পরিমাণ ১ বা তার বেশি হতে হবে)।", 'error');
+                    console.error("DEBUG: Form Validation Failed. Supplier:", supplierName, "Amount:", amount, "Date:", date);
                     return;
+                }
+                
+                // যদি 'ক্রয়' হয় কিন্তু বিবরণ খালি থাকে, তবে HTML ভ্যালিডেশন কাজ না করলে ম্যানুয়ালি চেক করা
+                if (type === 'purchase' && descriptionInput.required && description.length === 0) {
+                     showMessage("ক্রয়ের জন্য পণ্যের বিবরণ আবশ্যক।", 'error');
+                     return;
                 }
                 
                 const transactionData = {
@@ -346,6 +486,7 @@
                 submitButton.disabled = true;
                 submitButton.textContent = '...সেভ হচ্ছে...';
 
+                // Core function call
                 addTransaction(transactionData);
 
                 submitButton.disabled = false;
@@ -354,7 +495,6 @@
             
             // ডেটা মোছার বাটন
             document.getElementById('clear-data-button').addEventListener('click', () => {
-                // কাস্টম কনফার্মেশন ডায়ালগ ব্যবহার করা হলো
                 const confirmClear = window.prompt("আপনি কি নিশ্চিত যে আপনি সব ডেটা মুছে ফেলতে চান? নিশ্চিত করতে 'CONFIRM' টাইপ করুন:");
                 
                 if (confirmClear === 'CONFIRM') {
@@ -362,7 +502,7 @@
                     localStorage.removeItem(BALANCE_KEY);
                     transactions = [];
                     balances = {};
-                    renderApp();
+                    checkLoginStatus(); // ডেটা মোছার পর লগইন স্ট্যাটাস চেক করে অ্যাপ রেন্ডার করা
                     showMessage("সব ডেটা সফলভাবে মুছে ফেলা হয়েছে।", 'success');
                 } else if (confirmClear !== null) {
                     showMessage("ডেটা মোছা বাতিল করা হয়েছে।", 'error');
