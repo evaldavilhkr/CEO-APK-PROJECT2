@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>দোকানের হিসেব রক্ষক (লগইন সহ)</title>
+    <title>দোকানের হিসেব রক্ষক (লোকাল স্টোরেজ)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
@@ -30,344 +30,158 @@
 <body class="p-4 sm:p-6">
     <div class="container-mobile bg-white shadow-xl rounded-2xl p-4 sm:p-6">
         <header class="text-center mb-6">
-            <h1 class="text-3xl font-extrabold text-blue-600">দোকানের ক্রয় ও পেমেন্ট হিসেব</h1>
-            <p class="text-sm text-gray-500 mt-1">আপনার সব লেনদেন এক জায়গায় ট্র্যাক করুন</p>
-            <button id="logout-button" class="mt-2 text-xs text-red-500 hover:text-red-700 hidden">লগ আউট</button>
+            <h1 class="text-3xl font-extrabold text-blue-600">দোকানের ক্রয় ও পেমেন্ট হিসেব (অফলাইন মোড)</h1>
+            <p class="text-sm text-gray-500 mt-1">আপনার সব লেনদেন এই ব্রাউজারেই সেভ হবে</p>
         </header>
 
-        <!-- Loading Indicator -->
-        <div id="loading" class="text-center p-8">
-            <div class="flex justify-center items-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <p class="ml-3 text-blue-500">অ্যাপ লোড হচ্ছে...</p>
-            </div>
+        <!-- WARNING Section for Local Storage -->
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md" role="alert">
+            <p class="font-bold">গুরুত্বপূর্ণ সতর্কতা!</p>
+            <p class="text-sm">এই হিসেব শুধুমাত্র আপনার **এই ব্রাউজার ও ডিভাইসে** সেভ হবে। ব্রাউজারের ক্যাশ বা ডেটা ডিলিট করলে সব হিসেব মুছে যাবে।</p>
         </div>
 
-        <!-- Authentication Section -->
-        <div id="auth-section" class="hidden p-6 bg-gray-50 rounded-xl shadow-inner">
-            <h2 id="auth-title" class="text-2xl font-bold text-center mb-6 text-gray-800">লগইন করুন</h2>
+
+        <!-- Supplier Balances Summary -->
+        <section class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সরবরাহকারীর বাকি হিসেব</h2>
+            <div id="balances-summary" class="space-y-3">
+                <!-- Balances will be inserted here -->
+            </div>
+            <p id="no-balances" class="text-gray-500 text-sm italic mt-2 hidden">এখনও কোনো সরবরাহকারীর হিসেব নেই।</p>
+        </section>
+        
+        <!-- New Transaction Form -->
+        <section class="mb-8 bg-blue-50 p-4 rounded-xl shadow-inner">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">নতুন লেনদেন যোগ করুন</h2>
             
-            <form id="auth-form" class="space-y-4">
-                <div>
-                    <label for="auth-email" class="block text-sm font-medium text-gray-700">ইমেল (Email)</label>
-                    <input type="email" id="auth-email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <form id="transaction-form" class="space-y-4">
+                
+                <div class="flex space-x-2">
+                    <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
+                        <input type="radio" name="transactionType" value="purchase" class="form-radio text-blue-600 h-4 w-4" checked>
+                        <span class="ml-2 font-medium text-gray-700">ক্রয় (মাল কেনা)</span>
+                    </label>
+                    <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
+                        <input type="radio" name="transactionType" value="payment" class="form-radio text-green-600 h-4 w-4">
+                        <span class="ml-2 font-medium text-gray-700">পেমেন্ট (টাকা দেওয়া)</span>
+                    </label>
                 </div>
+
                 <div>
-                    <label for="auth-password" class="block text-sm font-medium text-gray-700">পাসওয়ার্ড (Password)</label>
-                    <input type="password" id="auth-password" required minlength="6" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <label for="supplierName" class="block text-sm font-medium text-gray-700">সরবরাহকারীর নাম</label>
+                    <input type="text" id="supplierName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">টাকার পরিমাণ (Amount)</label>
+                    <input type="number" id="amount" required min="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 
-                <button type="submit" id="auth-submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                    লগইন করুন
+                <div id="description-field" class="transition-all duration-300">
+                    <label for="description" class="block text-sm font-medium text-gray-700">পণ্যের বিবরণ (Description)</label>
+                    <textarea id="description" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="যেমন: ৫টি মোবাইল কভার, ১০ কেজি চাল"></textarea>
+                </div>
+
+                <div>
+                    <label for="transactionDate" class="block text-sm font-medium text-gray-700">তারিখ</label>
+                    <input type="date" id="transactionDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    লেনদেন যোগ করুন
                 </button>
-                <div id="auth-message-box" class="mt-3 p-3 text-sm rounded-lg text-center hidden" role="alert"></div>
-
-                <div class="text-center pt-2 flex justify-between items-center flex-wrap">
-                    <button type="button" id="toggle-auth-mode" class="text-blue-500 hover:text-blue-700 text-sm order-1 sm:order-1 mt-2 sm:mt-0">
-                        অ্যাকাউন্ট নেই? রেজিস্ট্রেশন করুন
-                    </button>
-                    <!-- NEW RECOVERY BUTTON -->
-                    <button type="button" id="forgot-password-button" class="text-red-500 hover:text-red-700 text-sm order-2 sm:order-2 mt-2 sm:mt-0">
-                        পাসওয়ার্ড ভুলে গেছেন?
-                    </button>
-                </div>
+                <div id="message-box" class="mt-3 p-3 text-sm rounded-lg text-center hidden" role="alert"></div>
             </form>
-            
-            <p id="local-config-note" class="text-xs text-yellow-600 bg-yellow-50 p-3 mt-4 rounded-lg">
-                <span class="font-bold">গুরুত্বপূর্ণ:</span> এই অ্যাপটি অফলাইনে বা GitHub-এ চালানোর জন্য, আপনাকে নিচে কোডে আপনার নিজস্ব Firebase কনফিগারেশন যোগ করতে হবে।
-            </p>
-        </div>
+        </section>
 
-
-        <!-- Main Application Content -->
-        <div id="app-content" class="hidden">
-            <div id="user-info" class="text-xs text-gray-400 mt-2 p-2 bg-gray-50 rounded-lg text-center mb-4">
-                Logged in as: <span id="current-user-id"></span>
+        <!-- Transaction List -->
+        <section class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সাম্প্রতিক লেনদেনসমূহ</h2>
+            <div id="transaction-list" class="space-y-3">
+                <!-- Transactions will be inserted here -->
             </div>
-
-            <!-- Supplier Balances Summary -->
-            <section class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সরবরাহকারীর বাকি হিসেব</h2>
-                <div id="balances-summary" class="space-y-3">
-                    <!-- Balances will be inserted here -->
-                </div>
-                <p id="no-balances" class="text-gray-500 text-sm italic mt-2 hidden">এখনও কোনো সরবরাহকারীর হিসেব নেই।</p>
-            </section>
-            
-            <!-- New Transaction Form -->
-            <section class="mb-8 bg-blue-50 p-4 rounded-xl shadow-inner">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">নতুন লেনদেন যোগ করুন</h2>
-                
-                <form id="transaction-form" class="space-y-4">
-                    
-                    <div class="flex space-x-2">
-                        <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
-                            <input type="radio" name="transactionType" value="purchase" class="form-radio text-blue-600 h-4 w-4" checked>
-                            <span class="ml-2 font-medium text-gray-700">ক্রয় (মাল কেনা)</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg shadow-sm w-1/2 cursor-pointer transition duration-150 ease-in-out hover:bg-gray-100">
-                            <input type="radio" name="transactionType" value="payment" class="form-radio text-green-600 h-4 w-4">
-                            <span class="ml-2 font-medium text-gray-700">পেমেন্ট (টাকা দেওয়া)</span>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label for="supplierName" class="block text-sm font-medium text-gray-700">সরবরাহকারীর নাম</label>
-                        <input type="text" id="supplierName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-
-                    <div>
-                        <label for="amount" class="block text-sm font-medium text-gray-700">টাকার পরিমাণ (Amount)</label>
-                        <input type="number" id="amount" required min="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    
-                    <div id="description-field" class="transition-all duration-300">
-                        <label for="description" class="block text-sm font-medium text-gray-700">পণ্যের বিবরণ (Description)</label>
-                        <textarea id="description" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="যেমন: ৫টি মোবাইল কভার, ১০ কেজি চাল"></textarea>
-                    </div>
-
-                    <div>
-                        <label for="transactionDate" class="block text-sm font-medium text-gray-700">তারিখ</label>
-                        <input type="date" id="transactionDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-
-                    <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                        লেনদেন যোগ করুন
-                    </button>
-                    <div id="message-box" class="mt-3 p-3 text-sm rounded-lg text-center hidden" role="alert"></div>
-                </form>
-            </section>
-
-            <!-- Transaction List -->
-            <section class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">সাম্প্রতিক লেনদেনসমূহ</h2>
-                <div id="transaction-list" class="space-y-3">
-                    <!-- Transactions will be inserted here -->
-                </div>
-                <p id="no-transactions" class="text-gray-500 text-sm italic mt-4 hidden">এখনও কোনো লেনদেন রেকর্ড করা হয়নি।</p>
-            </section>
-        </div>
-
+            <p id="no-transactions" class="text-gray-500 text-sm italic mt-4 hidden">এখনও কোনো লেনদেন রেকর্ড করা হয়নি।</p>
+        </section>
+        
+        <!-- Data Management Buttons (Optional but helpful) -->
+        <section class="flex justify-between items-center pt-4 border-t border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800">ডেটা ম্যানেজমেন্ট</h3>
+            <button id="clear-data-button" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg shadow hover:bg-red-600 transition duration-150 ease-in-out">
+                সব ডেটা মুছে ফেলুন
+            </button>
+        </section>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, query, orderBy, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-lite.js";
-
-        // Global Firebase and App variables
-        let app;
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthReady = false;
-        let authMode = 'login'; // 'login' or 'register'
+    <!-- Application Logic (No Firebase) -->
+    <script>
+        // Local Storage Keys
+        const TRANSACTION_KEY = 'shopLedgerTransactions';
+        const BALANCE_KEY = 'shopLedgerBalances';
         
-        // --- Element References ---
+        let transactions = [];
+        let balances = {}; // { supplierName: balanceAmount }
 
-        const loadingDiv = document.getElementById('loading');
-        const authSection = document.getElementById('auth-section');
-        const appContent = document.getElementById('app-content');
-        const logoutButton = document.getElementById('logout-button');
-        const authForm = document.getElementById('auth-form');
-        const authSubmitButton = document.getElementById('auth-submit-button');
-        const toggleAuthModeButton = document.getElementById('toggle-auth-mode');
-        const forgotPasswordButton = document.getElementById('forgot-password-button');
-        const authTitle = document.getElementById('auth-title');
-        const authMessageBox = document.getElementById('auth-message-box');
-        
-        // --- CUSTOM CONFIGURATION BLOCK ---
-        // যদি আপনি GitHub Pages বা লোকাল মেশিনে চালান, তাহলে নিচের ভ্যারিয়েবল দুটি আপনার Firebase Console থেকে পাওয়া তথ্য দিয়ে পূরণ করুন।
-        
-        const localAppId = 'your-local-app-id'; // যেকোনো একটি ইউনিক নাম দিন
-        const localFirebaseConfig = {
-            // 875fedee522a42148cb3e244afe9544d
-        };
-        
-        // যদি প্ল্যাটফর্মের কনফিগারেশন না পাওয়া যায়, তবে লোকাল কনফিগারেশন ব্যবহার করা হবে।
-        const appId = typeof __app_id !== 'undefined' ? __app_id : localAppId;
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : localFirebaseConfig;
+        // --- Local Storage Functions ---
 
-        // --- END CUSTOM CONFIGURATION BLOCK ---
-
-        // Custom message box for Auth errors
-        function showAuthMessage(message, type = 'success') {
-            authMessageBox.textContent = message;
-            authMessageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
-            
-            if (type === 'success') {
-                authMessageBox.classList.add('bg-green-100', 'text-green-800');
-            } else {
-                authMessageBox.classList.add('bg-red-100', 'text-red-800');
-            }
-            
-            setTimeout(() => {
-                authMessageBox.classList.add('hidden');
-            }, 5000);
-        }
-
-        function showAuthError(message) {
-            showAuthMessage(message, 'error');
-        }
-
-
-        if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.apiKey !== undefined) {
-            // Configuration exists (either platform provided or user's local config)
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            setLogLevel('Debug'); 
-            document.getElementById('local-config-note').classList.add('hidden'); // Hide note if config is found
-
-            setPersistence(auth, browserLocalPersistence).catch(error => {
-                console.error("Persistence failed:", error);
-            });
-
-            // Auth State Listener
-            onAuthStateChanged(auth, (user) => {
-                loadingDiv.classList.add('hidden');
-                if (user) {
-                    // Logged In State
-                    userId = user.uid;
-                    document.getElementById('current-user-id').textContent = user.email || userId;
-                    authSection.classList.add('hidden');
-                    appContent.classList.remove('hidden');
-                    logoutButton.classList.remove('hidden');
-                    
-                    if (!isAuthReady) {
-                        setupRealtimeListeners();
-                        isAuthReady = true;
-                    }
-                } else {
-                    // Logged Out State
-                    userId = null;
-                    isAuthReady = false;
-                    appContent.classList.add('hidden');
-                    authSection.classList.remove('hidden');
-                    logoutButton.classList.add('hidden');
-                    authMessageBox.classList.add('hidden');
-                }
-            });
-        } else {
-            // No valid configuration found
-            loadingDiv.classList.add('hidden');
-            authSection.classList.remove('hidden');
-            document.getElementById('local-config-note').classList.remove('hidden'); // Show note
-            
-            // Show a specific error if platform config is missing and local config is default/empty
-            if (typeof __firebase_config === 'undefined' && Object.keys(localFirebaseConfig).length === 0) {
-                 loadingDiv.innerHTML = '<p class="text-red-500">Firebase Configuration Missing. Cannot run app.</p>';
-                 loadingDiv.classList.remove('hidden');
-                 authSection.classList.add('hidden');
-            }
-        }
-        
-        // --- Authentication Handlers (Code unchanged from previous version) ---
-
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-
-            authSubmitButton.disabled = true;
-            authSubmitButton.textContent = '...প্রসেস হচ্ছে...';
-            showAuthMessage('', 'success');
-            
+        // Local Storage থেকে সেভ করা ডেটা লোড করে
+        function loadData() {
             try {
-                if (authMode === 'register') {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    showAuthMessage("রেজিস্ট্রেশন সফল! আপনি এখন লগইন করেছেন।", 'success');
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    showAuthMessage("লগইন সফল!", 'success');
-                }
-            } catch (error) {
-                console.error("Auth Error:", error);
-                let errorMessage = "লগইন বা রেজিস্ট্রেশনে সমস্যা হয়েছে।";
+                const storedTransactions = localStorage.getItem(TRANSACTION_KEY);
+                const storedBalances = localStorage.getItem(BALANCE_KEY);
                 
-                if (error.code === 'auth/wrong-password') {
-                    errorMessage = "ভুল পাসওয়ার্ড।";
-                } else if (error.code === 'auth/user-not-found') {
-                    errorMessage = "এই ইমেলে কোনো ইউজার পাওয়া যায়নি।";
-                } else if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = "এই ইমেলটি ইতিমধ্যেই ব্যবহৃত হয়েছে।";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "অনুগ্রহ করে সঠিক ইমেল দিন।";
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = "পাসওয়ার্ড খুবই দুর্বল (কমপক্ষে ৬ অক্ষর)।";
-                }
+                transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
+                balances = storedBalances ? JSON.parse(storedBalances) : {};
                 
-                showAuthError(errorMessage);
-            } finally {
-                authSubmitButton.disabled = false;
-                authSubmitButton.textContent = authMode === 'register' ? 'রেজিস্ট্রেশন করুন' : 'লগইন করুন';
+                // ডেটা লোড হওয়ার পরে UI আপডেট করা
+                renderApp();
+            } catch (error) {
+                console.error("Error loading data from local storage:", error);
+                showMessage("ডেটা লোড করতে সমস্যা হয়েছে। আপনার ব্রাউজার স্টোরেজ চেক করুন।", 'error');
             }
-        });
+        }
 
-        // --- Password Reset Handler ---
-        forgotPasswordButton.addEventListener('click', async () => {
-            const emailInput = document.getElementById('auth-email');
-            const email = emailInput.value.trim();
-
-            if (!email) {
-                showAuthError("পাসওয়ার্ড রিসেট করার জন্য অনুগ্রহ করে ইমেল অ্যাড্রেসটি লিখুন।");
-                emailInput.focus();
-                return;
+        // ডেটা লোকাল স্টোরেজে সেভ করে
+        function saveData() {
+            try {
+                localStorage.setItem(TRANSACTION_KEY, JSON.stringify(transactions));
+                localStorage.setItem(BALANCE_KEY, JSON.stringify(balances));
+            } catch (error) {
+                console.error("Error saving data to local storage:", error);
+                showMessage("ডেটা সেভ করতে সমস্যা হয়েছে। স্টোরেজ ফুল থাকতে পারে।", 'error');
             }
+        }
 
-            forgotPasswordButton.disabled = true;
-            forgotPasswordButton.textContent = '...কোড পাঠানো হচ্ছে...';
+        // --- Core Ledger Logic ---
+
+        function addTransaction(transactionData) {
+            const isPurchase = transactionData.type === 'purchase';
+            const amountChange = isPurchase ? transactionData.amount : -transactionData.amount;
+            const supplierName = transactionData.supplierName;
             
-            try {
-                await sendPasswordResetEmail(auth, email);
-                showAuthMessage(`পাসওয়ার্ড রিসেট লিঙ্ক আপনার ইমেল: ${email}-এ পাঠানো হয়েছে। অনুগ্রহ করে ইনবক্স চেক করুন।`, 'success');
-            } catch (error) {
-                console.error("Password Reset Error:", error);
-                let errorMessage = "পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে। ইমেলটি সঠিক কিনা নিশ্চিত করুন।";
-                if (error.code === 'auth/user-not-found') {
-                    errorMessage = "এই ইমেলে কোনো ইউজার পাওয়া যায়নি।";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "অনুগ্রহ করে সঠিক ইমেল অ্যাড্রেস লিখুন।";
-                }
-                showAuthError(errorMessage);
-            } finally {
-                forgotPasswordButton.disabled = false;
-                forgotPasswordButton.textContent = 'পাসওয়ার্ড ভুলে গেছেন?';
-            }
-        });
-        // --- End Password Reset Handler ---
+            // ১. Balance আপডেট করা
+            const currentBalance = balances[supplierName] || 0;
+            const newBalance = currentBalance + amountChange;
+            
+            balances[supplierName] = newBalance;
+            
+            // ২. Transaction লিস্টে যোগ করা
+            const newTransaction = {
+                ...transactionData,
+                timestamp: Date.now(),
+                id: Date.now() + Math.random(), // Unique ID
+            };
+            transactions.unshift(newTransaction); // নতুনটি উপরে যোগ করা
+            
+            // ৩. ডেটা সেভ করা এবং UI আপডেট করা
+            saveData();
+            renderApp();
 
+            showMessage(isPurchase ? "ক্রয় সফলভাবে যোগ হয়েছে!" : "পেমেন্ট সফলভাবে রেকর্ড হয়েছে!", 'success');
+            document.getElementById('transaction-form').reset();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+        }
 
-        toggleAuthModeButton.addEventListener('click', () => {
-            if (authMode === 'login') {
-                authMode = 'register';
-                authTitle.textContent = 'রেজিস্ট্রেশন করুন';
-                authSubmitButton.textContent = 'রেজিস্ট্রেশন করুন';
-                toggleAuthModeButton.textContent = 'ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন';
-                document.getElementById('auth-password').setAttribute('minlength', '6');
-            } else {
-                authMode = 'login';
-                authTitle.textContent = 'লগইন করুন';
-                authSubmitButton.textContent = 'লগইন করুন';
-                toggleAuthModeButton.textContent = 'অ্যাকাউন্ট নেই? রেজিস্ট্রেশন করুন';
-                document.getElementById('auth-password').removeAttribute('minlength');
-            }
-            authMessageBox.classList.add('hidden');
-        });
-        
-        logoutButton.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                showAuthMessage("সফলভাবে লগ আউট করা হয়েছে।");
-            } catch (error) {
-                console.error("Logout Error:", error);
-                showAuthError("লগ আউট করতে সমস্যা হয়েছে।");
-            }
-        });
-
-        // --- Helper Functions for Main App ---
+        // --- UI Rendering ---
 
         function showMessage(message, type = 'success') {
             const msgBox = document.getElementById('message-box');
@@ -385,120 +199,28 @@
             }, 5000);
         }
 
-        function showError(message) {
-            showMessage(message, 'error');
-        }
-
-        // --- Firestore Data Operations ---
-
-        function getTransactionCollectionPath() {
-            if (!userId) return null;
-            return `artifacts/${appId}/users/${userId}/transactions`;
-        }
-
-        function getSupplierBalanceDocPath(supplierName) {
-            if (!userId) return null;
-            const docId = supplierName.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50);
-            return `artifacts/${appId}/users/${userId}/balances/${docId}`;
-        }
-
-        async function addTransaction(transactionData) {
-            if (!userId) {
-                showError("লগইন না করে লেনদেন যোগ করা যাবে না।");
-                return;
-            }
-
-            const transactionsRef = collection(db, getTransactionCollectionPath());
-            const balanceDocRef = doc(db, getSupplierBalanceDocPath(transactionData.supplierName));
-            
-            const isPurchase = transactionData.type === 'purchase';
-            const amountChange = isPurchase ? transactionData.amount : -transactionData.amount;
-            
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const balanceDoc = await transaction.get(balanceDocRef);
-                    let newBalance = amountChange;
-                    
-                    if (balanceDoc.exists()) {
-                        const currentBalance = balanceDoc.data().balance || 0;
-                        newBalance = currentBalance + amountChange;
-                    }
-                    
-                    const newTransactionRef = doc(transactionsRef);
-                    transaction.set(newTransactionRef, {
-                        ...transactionData,
-                        timestamp: serverTimestamp(),
-                        date: transactionData.date,
-                    });
-                    
-                    transaction.set(balanceDocRef, {
-                        supplierName: transactionData.supplierName,
-                        balance: newBalance,
-                        lastUpdated: serverTimestamp()
-                    });
-                });
-
-                showMessage(isPurchase ? "ক্রয় সফলভাবে যোগ হয়েছে!" : "পেমেন্ট সফলভাবে রেকর্ড হয়েছে!", 'success');
-                document.getElementById('transaction-form').reset();
-                document.getElementById('transactionDate').valueAsDate = new Date();
-
-            } catch (e) {
-                console.error("Transaction failed: ", e);
-                showError("লেনদেন রেকর্ড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-            }
-        }
-
-        // --- Real-time Listeners ---
-
-        function setupRealtimeListeners() {
-            if (!userId || !db) return;
-
-            const transactionsRef = collection(db, getTransactionCollectionPath());
-            const transactionsQuery = query(transactionsRef, orderBy('timestamp', 'desc'));
-            
-            onSnapshot(transactionsQuery, (snapshot) => {
-                const transactions = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    transactions.push({ id: doc.id, ...data });
-                });
-                renderTransactions(transactions);
-            }, (error) => {
-                console.error("Error fetching transactions: ", error);
-                showError("লেনদেন লোড করতে সমস্যা হয়েছে।");
-            });
-
-            const balancesRef = collection(db, `artifacts/${appId}/users/${userId}/balances`);
-            
-            onSnapshot(balancesRef, (snapshot) => {
-                const balances = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    balances.push({ id: doc.id, ...data });
-                });
-                renderBalances(balances);
-            }, (error) => {
-                console.error("Error fetching balances: ", error);
-                showError("বাকি হিসেব লোড করতে সমস্যা হয়েছে।");
-            });
-        }
-
-        // --- UI Rendering (Balances and Transactions remain the same) ---
-
-        function renderBalances(balances) {
+        function renderBalances() {
             const container = document.getElementById('balances-summary');
             const noBalances = document.getElementById('no-balances');
             container.innerHTML = '';
             
-            if (balances.length === 0) {
+            // Balances অবজেক্টকে অ্যারেতে রূপান্তর করা
+            const balanceArray = Object.keys(balances)
+                .map(name => ({
+                    supplierName: name,
+                    balance: balances[name]
+                }))
+                .filter(item => Math.abs(item.balance) > 0.01); // খুবই কম ব্যালেন্স বাদ দেওয়া
+
+            if (balanceArray.length === 0) {
                 noBalances.classList.remove('hidden');
                 return;
             }
             noBalances.classList.add('hidden');
 
-            balances.sort((a, b) => b.balance - a.balance);
+            balanceArray.sort((a, b) => b.balance - a.balance);
 
-            balances.forEach(balance => {
+            balanceArray.forEach(balance => {
                 const isDebt = balance.balance > 0;
                 const statusColor = isDebt ? 'bg-red-100 text-red-700 border-red-300' : 'bg-green-100 text-green-700 border-green-300';
                 const statusText = isDebt ? 'বাকি' : 'অ্যাডভান্স';
@@ -519,7 +241,7 @@
             });
         }
 
-        function renderTransactions(transactions) {
+        function renderTransactions() {
             const container = document.getElementById('transaction-list');
             const noTransactions = document.getElementById('no-transactions');
             container.innerHTML = '';
@@ -536,12 +258,8 @@
                 const statusClass = isPurchase ? 'border-l-4 border-blue-500 bg-blue-50' : 'border-l-4 border-green-500 bg-green-50';
                 const typeText = isPurchase ? 'ক্রয়' : 'পেমেন্ট';
                 const amountText = tx.amount.toLocaleString('bn-BD', { style: 'currency', currency: 'BDT' });
-                const date = tx.date ? new Date(tx.date).toLocaleDateString('bn-BD') : 'N/A';
-                
-                let time = '';
-                if (tx.timestamp && tx.timestamp.toDate) {
-                    time = tx.timestamp.toDate().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
-                }
+                const date = new Date(tx.date).toLocaleDateString('bn-BD');
+                const time = new Date(tx.timestamp).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
 
                 const transactionHtml = `
                     <div class="flex p-4 rounded-xl shadow-md ${statusClass} hover:shadow-lg transition duration-200">
@@ -561,11 +279,19 @@
                 container.innerHTML += transactionHtml;
             });
         }
+        
+        // সব ডেটা রেন্ডার করা
+        function renderApp() {
+            renderBalances();
+            renderTransactions();
+        }
 
-        // --- Event Listeners and Initial State (Main App) ---
+        // --- Event Listeners and Initial Load ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('transactionDate').valueAsDate = new Date();
+            // ১. প্রাথমিক ডেটা লোড করা
+            loadData();
+            document.getElementById('transactionDate').valueAsDate = new Date(); // আজকের তারিখ সেট করা
 
             const form = document.getElementById('transaction-form');
             const typeRadios = form.querySelectorAll('input[name="transactionType"]');
@@ -593,7 +319,7 @@
             });
 
 
-            form.addEventListener('submit', async (e) => {
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
                 const formData = new FormData(form);
@@ -604,7 +330,7 @@
                 const date = formData.get('transactionDate');
 
                 if (!supplierName || isNaN(amount) || amount <= 0 || !date) {
-                    showError("ফর্মের সব ঘর সঠিকভাবে পূরণ করুন।");
+                    showMessage("ফর্মের সব ঘর সঠিকভাবে পূরণ করুন।", 'error');
                     return;
                 }
                 
@@ -620,15 +346,30 @@
                 submitButton.disabled = true;
                 submitButton.textContent = '...সেভ হচ্ছে...';
 
-                await addTransaction(transactionData);
+                addTransaction(transactionData);
 
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
             });
+            
+            // ডেটা মোছার বাটন
+            document.getElementById('clear-data-button').addEventListener('click', () => {
+                // কাস্টম কনফার্মেশন ডায়ালগ ব্যবহার করা হলো
+                const confirmClear = window.prompt("আপনি কি নিশ্চিত যে আপনি সব ডেটা মুছে ফেলতে চান? নিশ্চিত করতে 'CONFIRM' টাইপ করুন:");
+                
+                if (confirmClear === 'CONFIRM') {
+                    localStorage.removeItem(TRANSACTION_KEY);
+                    localStorage.removeItem(BALANCE_KEY);
+                    transactions = [];
+                    balances = {};
+                    renderApp();
+                    showMessage("সব ডেটা সফলভাবে মুছে ফেলা হয়েছে।", 'success');
+                } else if (confirmClear !== null) {
+                    showMessage("ডেটা মোছা বাতিল করা হয়েছে।", 'error');
+                }
+            });
         });
-
     </script>
 </body>
 </html>
 
-  
