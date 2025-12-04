@@ -37,7 +37,6 @@
         <input type="number" id="payment" name="payment"><br><br>
         <button id="add-product-btn">পণ্য যোগ করুন</button>
     </form>
-    <h2>প্রথম পেজ</h2>
     <table id="product-table">
         <thead>
             <tr>
@@ -53,19 +52,6 @@
             </tr>
         </thead>
         <tbody id="product-table-body">
-        </tbody>
-    </table>
-    <h2>দ্বিতীয় পেজ</h2>
-    <table id="transaction-table">
-        <thead>
-            <tr>
-                <th>ট্রানজেকশন টাইপ</th>
-                <th>অ্যামাউন্ট</th>
-                <th>পেমেন্ট</th>
-                <th>তারিখ</th>
-            </tr>
-        </thead>
-        <tbody id="transaction-table-body">
         </tbody>
     </table>
 
@@ -144,22 +130,7 @@
                 });
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
-                displayTransactions(index);
             }
-        }
-
-        function displayTransactions(index) {
-            let tableBody = document.getElementById('transaction-table-body');
-            tableBody.innerHTML = '';
-            products[index].transactions.forEach((transaction) => {
-                let row = `<tr>
-                    <td>${transaction.type}</td>
-                    <td>${transaction.amount}</td>
-                    <td>${transaction.payment}</td>
-                    <td>${transaction.date}</td>
-                </tr>`;
-                tableBody.innerHTML += row;
-            });
         }
 
         displayProducts();
