@@ -126,12 +126,8 @@
         function buyProduct(index) {
             let quantity = parseInt(document.getElementById(`quantity-${index}`).value);
             if (quantity > 0) {
-                let newQuantity = products[index].productQuantity + quantity;
-                let newTotalCost = newQuantity * products[index].productPrice;
-                let newDue = newTotalCost - products[index].payment;
-                products[index].productQuantity = newQuantity;
-                products[index].totalCost = newTotalCost;
-                products[index].due = newDue;
+                products[index].due += payment;
+                products[index].paymentDate = new Date().toLocaleDateString();
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
