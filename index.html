@@ -47,6 +47,7 @@
                 <th>মোট খরচ</th>
                 <th>পেমেন্ট</th>
                 <th>বাকি</th>
+                <th>ক্রয় তারিখ</th>
                 <th>পেমেন্ট করুন</th>
             </tr>
         </thead>
@@ -75,7 +76,8 @@
                 productPrice,
                 totalCost,
                 payment,
-                due
+                due,
+                purchaseDate: new Date().toLocaleDateString()
             };
 
             products.push(product);
@@ -96,6 +98,7 @@
                     <td>${product.totalCost}</td>
                     <td>${product.payment}</td>
                     <td>${product.due}</td>
+                    <td>${product.purchaseDate}</td>
                     <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
                     <button onclick="makePayment(${index})">পেমেন্ট</button></td>
                 </tr>`;
@@ -108,6 +111,7 @@
             if (payment > 0) {
                 products[index].payment += payment;
                 products[index].due -= payment;
+                products[index].paymentDate = new Date().toLocaleDateString();
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
