@@ -96,6 +96,7 @@
         function displayProducts() {
             let tableBody = document.getElementById('product-table-body');
             tableBody.innerHTML = '';
+            products = JSON.parse(localStorage.getItem('products'));
             products.forEach((product, index) => {
                 let transactions = '';
                 product.transactions.forEach((transaction) => {
@@ -120,6 +121,7 @@
         function makePayment(index) {
             let payment = parseFloat(document.getElementById(`payment-${index}`).value);
             if (payment > 0) {
+                products = JSON.parse(localStorage.getItem('products'));
                 products[index].payment += payment;
                 products[index].due -= payment;
                 products[index].transactions.push({
