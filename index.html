@@ -126,9 +126,11 @@
         function buyProduct(index) {
             let quantity = parseInt(document.getElementById(`quantity-${index}`).value);
             if (quantity > 0) {
+                let newTotalCost = (products[index].productQuantity + quantity) * products[index].productPrice;
+                let newDue = newTotalCost - products[index].payment;
                 products[index].productQuantity += quantity;
-                products[index].totalCost += quantity * products[index].productPrice;
-                products[index].due += quantity * products[index].productPrice;
+                products[index].totalCost = newTotalCost;
+                products[index].due = newDue;
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
