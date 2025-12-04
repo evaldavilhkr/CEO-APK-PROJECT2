@@ -49,6 +49,7 @@
                 <th>বাকি</th>
                 <th>ক্রয় তারিখ</th>
                 <th>পেমেন্ট করুন</th>
+                <th>ডিলিট</th>
             </tr>
         </thead>
         <tbody id="product-table-body">
@@ -89,6 +90,7 @@
         function displayProducts() {
             let tableBody = document.getElementById('product-table-body');
             tableBody.innerHTML = '';
+            products = JSON.parse(localStorage.getItem('products'));
             products.forEach((product, index) => {
                 let row = `<tr>
                     <td>${product.productName}</td>
@@ -101,6 +103,7 @@
                     <td>${product.purchaseDate}</td>
                     <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
                     <button onclick="makePayment(${index})">পেমেন্ট</button></td>
+                    <td><button onclick="deleteProduct(${index})">ডিলিট</button></td>
                 </tr>`;
                 tableBody.innerHTML += row;
             });
@@ -115,6 +118,12 @@
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
+        }
+
+        function deleteProduct(index) {
+            products.splice(index, 1);
+            localStorage.setItem('products', JSON.stringify(products));
+            displayProducts();
         }
 
         displayProducts();
