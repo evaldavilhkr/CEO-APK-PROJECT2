@@ -49,6 +49,7 @@
                 <th>বাকি</th>
                 <th>ক্রয় তারিখ</th>
                 <th>পেমেন্ট করুন</th>
+                <th>ক্রয় করুন</th>
                 <th>ডিলিট</th>
             </tr>
         </thead>
@@ -103,6 +104,8 @@
                     <td>${product.purchaseDate}</td>
                     <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
                     <button onclick="makePayment(${index})">পেমেন্ট</button></td>
+                    <td><input type="number" id="quantity-${index}" placeholder="পরিমাণ">
+                    <button onclick="buyProduct(${index})">ক্রয় করুন</button></td>
                     <td><button onclick="deleteProduct(${index})">ডিলিট</button></td>
                 </tr>`;
                 tableBody.innerHTML += row;
@@ -115,6 +118,17 @@
                 products[index].payment += payment;
                 products[index].due -= payment;
                 products[index].paymentDate = new Date().toLocaleDateString();
+                localStorage.setItem('products', JSON.stringify(products));
+                displayProducts();
+            }
+        }
+
+        function buyProduct(index) {
+            let quantity = parseInt(document.getElementById(`quantity-${index}`).value);
+            if (quantity > 0) {
+                products[index].productQuantity += quantity;
+                products[index].totalCost += quantity * products[index].productPrice;
+                products[index].due += quantity * products[index].productPrice;
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
