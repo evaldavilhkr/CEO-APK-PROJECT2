@@ -79,7 +79,7 @@
                 totalCost,
                 payment,
                 due,
-                purchaseDate: new Date().toLocaleDateString()
+                purchaseDate: new Date().toLocaleString()
             };
 
             products.push(product);
@@ -103,9 +103,11 @@
                     <td>${product.due}</td>
                     <td>${product.purchaseDate}</td>
                     <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
-                    <button onclick="makePayment(${index})">পেমেন্ট</button></td>
+                    <button onclick="makePayment(${index})">পেমেন্ট</button><br>
+                    <small>পেমেন্ট সময়: ${product.paymentDate || ''}</small></td>
                     <td><input type="number" id="quantity-${index}" placeholder="পরিমাণ">
-                    <button onclick="buyProduct(${index})">ক্রয় করুন</button></td>
+                    <button onclick="buyProduct(${index})">ক্রয় করুন</button><br>
+                    <small>ক্রয় সময়: ${product.purchaseDate}</small></td>
                     <td><button onclick="deleteProduct(${index})">ডিলিট</button></td>
                 </tr>`;
                 tableBody.innerHTML += row;
@@ -117,7 +119,7 @@
             if (payment > 0) {
                 products[index].payment += payment;
                 products[index].due -= payment;
-                products[index].paymentDate = new Date().toLocaleDateString();
+                products[index].paymentDate = new Date().toLocaleString();
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
@@ -132,6 +134,7 @@
                 products[index].productQuantity = newQuantity;
                 products[index].totalCost = newTotalCost;
                 products[index].due = newDue;
+                products[index].purchaseDate = new Date().toLocaleString();
                 localStorage.setItem('products', JSON.stringify(products));
                 displayProducts();
             }
