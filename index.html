@@ -1,56 +1,275 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <title>Note by CEO</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK BY CEO APON (Firebase Integrated)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        form {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h1>Note by CEO</h1>
-  <textarea id="noteInput" rows="5" cols="30" placeholder="Write your note here..."></textarea><br>
-  <button onclick="saveNote()">Save Note</button>
+    <h1>📦 APK BY CEO APON - পণ্য ডেটা এন্ট্রি</h1>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-analytics.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js"></script>
+    <form id="product-form">
+        <h2>নতুন পণ্য যোগ করুন</h2>
+        <label for="product-name">পণ্যের নাম:</label>
+        <input type="text" id="product-name" name="product-name" required><br>
+        
+        <label for="supplier-name">সাপ্লাইয়ার নাম:</label>
+        <input type="text" id="supplier-name" name="supplier-name" required><br>
+        
+        <label for="product-quantity">পরিমাণ:</label>
+        <input type="number" id="product-quantity" name="product-quantity" min="1" required><br>
+        
+        <label for="product-price">একক মূল্য:</label>
+        <input type="number" id="product-price" name="product-price" min="0" step="0.01" required><br>
+        
+        <label for="payment">প্রাথমিক পেমেন্ট:</label>
+        <input type="number" id="payment" name="payment" min="0" step="0.01" required><br>
+        
+        <button type="submit" id="add-product-btn">পণ্য যোগ করুন এবং সেভ করুন</button>
+    </form>
+    
+    <hr>
 
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAWq4Lkt0GCtjcZGvZijI2OO7-6Hu5molM",
-      authDomain: "note-by-ceo-5b42a.firebaseapp.com",
-      databaseURL: "https://note-by-ceo-5b42a-default-rtdb.firebaseio.com",
-      projectId: "note-by-ceo-5b42a",
-      storageBucket: "note-by-ceo-5b42a.firebasestorage.app",
-      messagingSenderId: "442049744344",
-      appId: "1:442049744344:web:8be3da17ede606bb6df6ad",
-      measurementId: "G-2V9Y6CEYZE"
-    };
+    <h2>পণ্য তালিকা (Firebase থেকে লোড করা)</h2>
+    <table id="product-table">
+        <thead>
+            <tr>
+                <th>পণ্যের নাম</th>
+                <th>সাপ্লাইয়ার নাম</th>
+                <th>পরিমাণ</th>
+                <th>একক মূল্য</th>
+                <th>মোট খরচ</th>
+                <th>পেমেন্ট</th>
+                <th>বাকি</th>
+                <th>ক্রয় তারিখ ও সময়</th>
+                <th>পেমেন্ট করুন</th>
+                <th>ক্রয়/স্টক বাড়ান</th>
+                <th>ডিলিট</th>
+            </tr>
+        </thead>
+        <tbody id="product-table-body">
+            <tr><td colspan="11" style="text-align: center;">ডাটা লোড হচ্ছে...</td></tr>
+        </tbody>
+    </table>
 
-    // Initialize Firebase
-      const app = firebase.initializeApp(firebaseConfig);
-    const analytics = firebase.analytics();
-    const db = firebase.firestore();
+    <script>
+        // ১. আপনার দেওয়া Firebase কনফিগারেশন
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWq4Lkt0GCtjcZGvZijI2OO7-6Hu5molM",
+            authDomain: "note-by-ceo-5b42a.firebaseapp.com",
+            databaseURL: "https://note-by-ceo-5b42a-default-rtdb.firebaseio.com",
+            projectId: "note-by-ceo-5b42a",
+            storageBucket: "note-by-ceo-5b42a.firebasestorage.app",
+            messagingSenderId: "442049744344",
+            appId: "1:442049744344:web:8be3da17ede606bb6df6ad",
+            measurementId: "G-2V9Y6CEYZE"
+        };
 
-    // Save function
-    function saveNote() {
-      const noteText = document.getElementById("noteInput").value;
+        // Firebase ইনিশিয়ালাইজ করা
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const productsRef = database.ref('products'); // 'products' নামে একটি রুট তৈরি করা হলো
 
-      if (!noteText.trim()) {
-        alert("Please write something before saving.");
-        return;
-      }
+        // ২. পণ্য যোগ করার ফাংশন (Local Storage এর বদলে Firebase এ সেভ)
+        document.getElementById('product-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // ইনপুট ভ্যালুগুলো নেওয়া
+            const productName = document.getElementById('product-name').value;
+            const supplierName = document.getElementById('supplier-name').value;
+            const productQuantity = parseInt(document.getElementById('product-quantity').value);
+            const productPrice = parseFloat(document.getElementById('product-price').value);
+            const payment = parseFloat(document.getElementById('payment').value);
 
-      db.collection("notes").add({
-        text: noteText,
-        time: new Date()
-      }).then(() => {
-        alert("Note saved to Firebase!");
-        document.getElementById("noteInput").value = "";
-      }).catch(error => {
-        alert("Error: " + error.message);
-      });
-    }
-  </script>
+            const totalCost = productQuantity * productPrice;
+            const due = totalCost - payment;
+            const purchaseDate = new Date().toLocaleString('bn-BD');
+
+            const productData = {
+                productName,
+                supplierName,
+                productQuantity,
+                productPrice,
+                totalCost: parseFloat(totalCost.toFixed(2)),
+                payment: parseFloat(payment.toFixed(2)),
+                due: parseFloat(due.toFixed(2)),
+                purchaseDate
+            };
+            
+            // Firebase Realtime Database এ ডেটা push করা
+            productsRef.push(productData)
+                .then(() => {
+                    alert("পণ্য সফলভাবে Firebase-এ যোগ করা হয়েছে!");
+                    document.getElementById('product-form').reset();
+                })
+                .catch((error) => {
+                    console.error("Firebase এ যোগ করার সময় ত্রুটি:", error);
+                    alert("ডেটা সেভ করতে সমস্যা হয়েছে। কনসোল দেখুন।");
+                });
+        });
+
+        // ৩. Firebase থেকে ডেটা লোড করা এবং টেবিলে প্রদর্শন করা
+        productsRef.on('value', (snapshot) => {
+            const products = [];
+            const tableBody = document.getElementById('product-table-body');
+            tableBody.innerHTML = ''; // টেবিল খালি করা
+            
+            if (snapshot.exists()) {
+                // Firebase থেকে পাওয়া প্রতিটি ডেটার জন্য
+                snapshot.forEach((childSnapshot) => {
+                    const product = childSnapshot.val();
+                    product.key = childSnapshot.key; // Firebase Key সংরক্ষণ
+                    products.push(product);
+                });
+
+                products.forEach((product) => {
+                    // ডাইনামিকভাবে টেবিল রো তৈরি
+                    const row = `<tr>
+                        <td>${product.productName}</td>
+                        <td>${product.supplierName}</td>
+                        <td>${product.productQuantity}</td>
+                        <td>${product.productPrice}</td>
+                        <td>${product.totalCost.toFixed(2)}</td>
+                        <td>${product.payment.toFixed(2)}</td>
+                        <td>${product.due.toFixed(2)}</td>
+                        <td>${product.purchaseDate}</td>
+                        <td>
+                            <input type="number" id="payment-${product.key}" placeholder="পরিমাণ" min="0" step="0.01">
+                            <button onclick="makePayment('${product.key}')">পেমেন্ট</button>
+                            <small>শেষ পেমেন্ট: ${product.paymentDate || ''}</small>
+                        </td>
+                        <td>
+                            <input type="number" id="quantity-${product.key}" placeholder="পরিমাণ" min="1">
+                            <button onclick="increaseQuantity('${product.key}')">ক্রয়/স্টক বাড়ান</button>
+                        </td>
+                        <td><button onclick="deleteProduct('${product.key}')">ডিলিট</button></td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center;">কোনো পণ্য ডেটা পাওয়া যায়নি।</td></tr>';
+            }
+        }, (error) => {
+            console.error("ডেটা লোড করার সময় ত্রুটি:", error);
+            document.getElementById('product-table-body').innerHTML = `<tr><td colspan="11" style="color: red; text-align: center;">ডেটা লোড করার সময় ত্রুটি: ${error.message}</td></tr>`;
+        });
+
+
+        // ৪. পেমেন্ট আপডেট করার ফাংশন
+        window.makePayment = function(key) {
+            const paymentInput = document.getElementById(`payment-${key}`);
+            const paymentAmount = parseFloat(paymentInput.value);
+
+            if (isNaN(paymentAmount) || paymentAmount <= 0) {
+                alert("সঠিক পেমেন্টের পরিমাণ দিন।");
+                return;
+            }
+
+            // Firebase Transaction ব্যবহার করে অ্যাটমিক আপডেট করা
+            const productRef = database.ref('products/' + key);
+            productRef.transaction((currentProduct) => {
+                if (currentProduct) {
+                    currentProduct.payment = parseFloat((currentProduct.payment + paymentAmount).toFixed(2));
+                    currentProduct.due = parseFloat((currentProduct.due - paymentAmount).toFixed(2));
+                    currentProduct.paymentDate = new Date().toLocaleString('bn-BD');
+                }
+                return currentProduct;
+            })
+            .then(() => {
+                alert(`পেমেন্ট সফল: ${paymentAmount} টাকা আপডেট করা হয়েছে।`);
+                paymentInput.value = ''; // ইনপুট ফিল্ড খালি করা
+            })
+            .catch((error) => {
+                console.error("পেমেন্ট আপডেটে ত্রুটি:", error);
+                alert("পেমেন্ট আপডেট করতে সমস্যা হয়েছে।");
+            });
+        }
+
+        // ৫. স্টক/পরিমাণ আপডেট করার ফাংশন
+        window.increaseQuantity = function(key) {
+            const quantityInput = document.getElementById(`quantity-${key}`);
+            const quantityToAdd = parseInt(quantityInput.value);
+
+            if (isNaN(quantityToAdd) || quantityToAdd <= 0) {
+                alert("সঠিক পরিমাণ দিন।");
+                return;
+            }
+            
+            // Firebase Transaction ব্যবহার করে অ্যাটমিক আপডেট করা
+            const productRef = database.ref('products/' + key);
+            productRef.transaction((currentProduct) => {
+                if (currentProduct) {
+                    const newQuantity = currentProduct.productQuantity + quantityToAdd;
+                    const newTotalCost = newQuantity * currentProduct.productPrice;
+                    const newDue = newTotalCost - currentProduct.payment;
+
+                    currentProduct.productQuantity = newQuantity;
+                    currentProduct.totalCost = parseFloat(newTotalCost.toFixed(2));
+                    currentProduct.due = parseFloat(newDue.toFixed(2));
+                    currentProduct.purchaseDate = new Date().toLocaleString('bn-BD'); // শেষ ক্রয় সময় আপডেট
+                }
+                return currentProduct;
+            })
+            .then(() => {
+                alert(`স্টক সফলভাবে ${quantityToAdd} পরিমাণ বাড়ানো হয়েছে।`);
+                quantityInput.value = ''; // ইনপুট ফিল্ড খালি করা
+            })
+            .catch((error) => {
+                console.error("স্টক আপডেটে ত্রুটি:", error);
+                alert("স্টক আপডেট করতে সমস্যা হয়েছে।");
+            });
+        }
+
+        // ৬. পণ্য ডিলিট করার ফাংশন
+        window.deleteProduct = function(key) {
+            if (confirm("আপনি কি নিশ্চিত এই পণ্যটি ডিলিট করতে চান?")) {
+                database.ref('products/' + key).remove()
+                    .then(() => {
+                        alert("পণ্য সফলভাবে ডিলিট করা হয়েছে!");
+                    })
+                    .catch((error) => {
+                        console.error("ডিলিট করার সময় ত্রুটি:", error);
+                        alert("পণ্য ডিলিট করতে সমস্যা হয়েছে।");
+                    });
+            }
+        }
+    </script>
 </body>
 </html>
