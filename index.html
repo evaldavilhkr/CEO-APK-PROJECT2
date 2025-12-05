@@ -1,152 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APK BY CEO APON</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f0f0f0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Note by CEO</title>
 </head>
 <body>
-    <h1>APK BY CEO APON</h1>
-    <form id="product-form">
-        <label for="product-name">পণ্যের নাম:</label>
-        <input type="text" id="product-name" name="product-name"><br><br>
-        <label for="supplier-name">সাপ্লাইয়ার নাম:</label>
-        <input type="text" id="supplier-name" name="supplier-name"><br><br>
-        <label for="product-quantity">পরিমাণ:</label>
-        <input type="number" id="product-quantity" name="product-quantity"><br><br>
-        <label for="product-price">মূল্য:</label>
-        <input type="number" id="product-price" name="product-price"><br><br>
-        <label for="payment">পেমেন্ট:</label>
-        <input type="number" id="payment" name="payment"><br><br>
-        <button id="add-product-btn">পণ্য যোগ করুন</button>
-    </form>
-    <table id="product-table">
-        <thead>
-            <tr>
-                <th>পণ্যের নাম</th>
-                <th>সাপ্লাইয়ার নাম</th>
-                <th>পরিমাণ</th>
-                <th>মূল্য</th>
-                <th>মোট খরচ</th>
-                <th>পেমেন্ট</th>
-                <th>বাকি</th>
-                <th>ক্রয় তারিখ ও সময়</th>
-                <th>পেমেন্ট করুন</th>
-                <th>ক্রয় করুন</th>
-                <th>ডিলিট</th>
-            </tr>
-        </thead>
-        <tbody id="product-table-body">
-        </tbody>
-    </table>
+  <h1>Note by CEO</h1>
+  <textarea id="noteInput" rows="5" cols="30" placeholder="Write your note here..."></textarea><br>
+  <button onclick="saveNote()">Save Note</button>
 
-    <script>
-        let products = JSON.parse(localStorage.getItem('products')) || [];
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js"></script>
 
-        document.getElementById('add-product-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            let productName = document.getElementById('product-name').value;
-            let supplierName = document.getElementById('supplier-name').value;
-            let productQuantity = parseInt(document.getElementById('product-quantity').value);
-            let productPrice = parseFloat(document.getElementById('product-price').value);
-            let payment = parseFloat(document.getElementById('payment').value);
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWq4Lkt0GCtjcZGvZijI2OO7-6Hu5molM",
+      authDomain: "note-by-ceo-5b42a.firebaseapp.com",
+      databaseURL: "https://note-by-ceo-5b42a-default-rtdb.firebaseio.com",
+      projectId: "note-by-ceo-5b42a",
+      storageBucket: "note-by-ceo-5b42a.firebasestorage.app",
+      messagingSenderId: "442049744344",
+      appId: "1:442049744344:web:8be3da17ede606bb6df6ad",
+      measurementId: "G-2V9Y6CEYZE"
+    };
 
-            let totalCost = productQuantity * productPrice;
-            let due = totalCost - payment;
+    // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+    const analytics = firebase.analytics();
+    const db = firebase.firestore();
 
-            let product = {
-                productName,
-                supplierName,
-                productQuantity,
-                productPrice,
-                totalCost,
-                payment,
-                due,
-                purchaseDate: new Date().toLocaleString()
-            };
+    // Save function
+    function saveNote() {
+      const noteText = document.getElementById("noteInput").value;
 
-            products.push(product);
-            localStorage.setItem('products', JSON.stringify(products));
-            displayProducts();
-            document.getElementById('product-form').reset();
-        });
+      if (!noteText.trim()) {
+        alert("Please write something before saving.");
+        return;
+      }
 
-        function displayProducts() {
-            let tableBody = document.getElementById('product-table-body');
-            tableBody.innerHTML = '';
-            products = JSON.parse(localStorage.getItem('products'));
-            products.forEach((product, index) => {
-                let row = `<tr>
-                    <td>${product.productName}</td>
-                    <td>${product.supplierName}</td>
-                    <td>${product.productQuantity}</td>
-                    <td>${product.productPrice}</td>
-                    <td>${product.totalCost}</td>
-                    <td>${product.payment}</td>
-                    <td>${product.due}</td>
-                    <td>${product.purchaseDate}</td>
-                    <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
-                    <button onclick="makePayment(${index})">পেমেন্ট</button><br>
-                    <small>পেমেন্ট সময়: ${product.paymentDate || ''}</small></td>
-                    <td><input type="number" id="quantity-${index}" placeholder="পরিমাণ">
-                    <button onclick="buyProduct(${index})">ক্রয় করুন</button><br>
-                    <small>ক্রয় সময়: ${product.purchaseDate}</small></td>
-                    <td><button onclick="deleteProduct(${index})">ডিলিট</button></td>
-                </tr>`;
-                tableBody.innerHTML += row;
-            });
-        }
-
-        function makePayment(index) {
-            let payment = parseFloat(document.getElementById(`payment-${index}`).value);
-            if (payment > 0) {
-                products[index].payment += payment;
-                products[index].due -= payment;
-                products[index].paymentDate = new Date().toLocaleString();
-                localStorage.setItem('products', JSON.stringify(products));
-                displayProducts();
-            }
-        }
-
-        function buyProduct(index) {
-            let quantity = parseInt(document.getElementById(`quantity-${index}`).value);
-            if (quantity > 0) {
-                let newQuantity = products[index].productQuantity + quantity;
-                let newTotalCost = newQuantity + products[index].productPrice;
-                let newDue = newTotalCost - products[index].payment;
-                products[index].productQuantity = newQuantity;
-                products[index].totalCost = newTotalCost;
-                products[index].due = newDue;
-                products[index].purchaseDate = new Date().toLocaleString();
-                localStorage.setItem('products', JSON.stringify(products));
-                displayProducts();
-            }
-        }
-
-        function deleteProduct(index) {
-            products.splice(index, 1);
-            localStorage.setItem('products', JSON.stringify(products));
-            displayProducts();
-        }
-
-        displayProducts();
-    </script>
+      db.collection("notes").add({
+        text: noteText,
+        time: new Date()
+      }).then(() => {
+        alert("Note saved to Firebase!");
+        document.getElementById("noteInput").value = "";
+      }).catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
+  </script>
 </body>
 </html>
