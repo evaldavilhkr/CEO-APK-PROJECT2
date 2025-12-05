@@ -60,7 +60,7 @@
     </table>
 
     <script>
-        // আপনার Firebase কনফিগারেশন
+        // ১. Firebase কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyAWq4Lkt0GCtjcZGvZijI2OO7-6Hu5molM",
             authDomain: "note-by-ceo-5b42a.firebaseapp.com",
@@ -72,12 +72,12 @@
             measurementId: "G-2V9Y6CEYZE"
         };
 
-        // Firebase ইনিশিয়ালাইজ করা
+        // Firebase ইনিশিয়ালাইজেশন
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const productsRef = database.ref('products');
 
-        let products = []; // লোকাল ভেরিয়েবল হিসেবে রাখা হলো ডিসপ্লের সুবিধার জন্য
+        let products = []; // Firebase ডেটা সংরক্ষণের জন্য ব্যবহৃত হবে
 
         // পণ্য যোগ করা (Firebase-এ)
         document.getElementById('add-product-btn').addEventListener('click', (e) => {
@@ -88,7 +88,6 @@
             let productPrice = parseFloat(document.getElementById('product-price').value);
             let payment = parseFloat(document.getElementById('payment').value);
 
-            // ভ্যালিডেশন চেক (খালি থাকলে এরর এড়াতে)
             if(!productName || !supplierName || isNaN(productQuantity) || isNaN(productPrice) || isNaN(payment)) {
                 alert("দয়া করে সব তথ্য সঠিক ভাবে পূরণ করুন");
                 return;
@@ -102,62 +101,61 @@
                 supplierName,
                 productQuantity,
                 productPrice,
-                totalCost,
-                payment,
-                due,
+                totalCost: parseFloat(totalCost.toFixed(2)),
+                payment: parseFloat(payment.toFixed(2)),
+                due: parseFloat(due.toFixed(2)),
                 purchaseDate: new Date().toLocaleString()
             };
 
-            // Firebase এ পাঠানো
+            // Firebase Realtime Database এ ডেটা push করা
             productsRef.push(product);
             document.getElementById('product-form').reset();
         });
 
-        // Firebase থেকে ডাটা লোড করা এবং টেবিলে দেখানো
+        // Firebase থেকে ডেটা লোড করা এবং টেবিলে প্রদর্শন করা
         productsRef.on('value', (snapshot) => {
             let tableBody = document.getElementById('product-table-body');
             tableBody.innerHTML = '';
-            products = []; // লিস্ট ক্লিয়ার করা
+            products = []; 
 
-            snapshot.forEach((childSnapshot) => {
-                let product = childSnapshot.val();
-                product.key = childSnapshot.key; // Firebase এর key সেভ রাখা ডিলিট/আপডেটের জন্য
-                products.push(product);
-            });
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    let product = childSnapshot.val();
+                    product.key = childSnapshot.key; // Firebase Key সেভ করা
+                    products.push(product);
+                });
 
-            // আপনার অরিজিনাল স্টাইলে ডিসপ্লে করা
-            products.forEach((product, index) => {
-                // পেমেন্ট ডেট চেক
-                let paymentDateDisplay = product.paymentDate ? product.paymentDate : '';
-
-                let row = `<tr>
-                    <td>${product.productName}</td>
-                    <td>${product.supplierName}</td>
-                    <td>${product.productQuantity}</td>
-                    <td>${product.productPrice}</td>
-                    <td>${product.totalCost}</td>
-                    <td>${product.payment}</td>
-                    <td>${product.due}</td>
-                    <td>${product.purchaseDate}</td>
-                    <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
-                    <button onclick="makePayment('${product.key}', ${index})">পেমেন্ট</button><br>
-                    <small>পেমেন্ট সময়: ${paymentDateDisplay}</small></td>
-                    <td><input type="number" id="quantity-${index}" placeholder="পরিমাণ">
-                    <button onclick="buyProduct('${product.key}', ${index})">ক্রয় করুন</button><br>
-                    <small>ক্রয় সময়: ${product.purchaseDate}</small></td>
-                    <td><button onclick="deleteProduct('${product.key}')">ডিলিট</button></td>
-                </tr>`;
-                tableBody.innerHTML += row;
-            });
+                products.forEach((product, index) => {
+                    let row = `<tr>
+                        <td>${product.productName}</td>
+                        <td>${product.supplierName}</td>
+                        <td>${product.productQuantity}</td>
+                        <td>${product.productPrice}</td>
+                        <td>${product.totalCost}</td>
+                        <td>${product.payment}</td>
+                        <td>${product.due}</td>
+                        <td>${product.purchaseDate}</td>
+                        <td><input type="number" id="payment-${index}" placeholder="পেমেন্ট করুন">
+                        <button onclick="makePayment('${product.key}', ${index})">পেমেন্ট</button><br>
+                        <small>পেমেন্ট সময়: ${product.paymentDate || ''}</small></td>
+                        <td><input type="number" id="quantity-${index}" placeholder="পরিমাণ">
+                        <button onclick="buyProduct('${product.key}', ${index})">ক্রয় করুন</button><br>
+                        <small>ক্রয় সময়: ${product.purchaseDate}</small></td>
+                        <td><button onclick="deleteProduct('${product.key}')">ডিলিট</button></td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                 tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center;">কোনো পণ্য ডেটা পাওয়া যায়নি।</td></tr>';
+            }
         });
 
-        // পেমেন্ট করা
+        // পেমেন্ট আপডেট করা (Firebase-এ)
         function makePayment(key, index) {
             let paymentInput = document.getElementById(`payment-${index}`).value;
             let paymentAmount = parseFloat(paymentInput);
             
             if (paymentAmount > 0) {
-                // বর্তমান ডাটা খুঁজে বের করা
                 let product = products.find(p => p.key === key);
                 
                 let newPayment = product.payment + paymentAmount;
@@ -166,14 +164,14 @@
 
                 // Firebase আপডেট
                 productsRef.child(key).update({
-                    payment: newPayment,
-                    due: newDue,
+                    payment: parseFloat(newPayment.toFixed(2)),
+                    due: parseFloat(newDue.toFixed(2)),
                     paymentDate: newPaymentDate
                 });
             }
         }
 
-        // পণ্য পুনরায় ক্রয় (স্টক আপডেট)
+        // স্টক/পরিমাণ আপডেট করা (Firebase-এ)
         function buyProduct(key, index) {
             let quantityInput = document.getElementById(`quantity-${index}`).value;
             let quantity = parseInt(quantityInput);
@@ -182,28 +180,29 @@
                 let product = products.find(p => p.key === key);
 
                 let newQuantity = product.productQuantity + quantity;
-                let newTotalCost = newQuantity * product.productPrice; // নতুন লজিক অনুযায়ী টোটাল আপডেট হবে
-                // অথবা আপনার আগের লজিক যদি রাখতে চান: let newTotalCost = newQuantity + product.productPrice (এটা ভুল মনে হচ্ছে, গুণ হবে, কিন্তু আপনার আগের কোডে যোগ ছিল। আমি গুণ করে দিয়েছি সঠিক হিসাবের জন্য। আপনি চাইলে আগের মতো রাখতে পারেন।)
-                
-                // সঠিক হিসাব:
-                newTotalCost = product.productPrice * newQuantity; 
+                let newTotalCost = newQuantity + product.productPrice; // আপনার original logic
                 let newDue = newTotalCost - product.payment;
                 let newPurchaseDate = new Date().toLocaleString();
 
+                // Firebase আপডেট
                 productsRef.child(key).update({
                     productQuantity: newQuantity,
-                    totalCost: newTotalCost,
-                    due: newDue,
+                    totalCost: parseFloat(newTotalCost.toFixed(2)),
+                    due: parseFloat(newDue.toFixed(2)),
                     purchaseDate: newPurchaseDate
                 });
             }
         }
 
-        // ডিলিট করা
+        // ডিলিট করা (Firebase-এ)
         function deleteProduct(key) {
-            productsRef.child(key).remove();
+            if (confirm("আপনি কি নিশ্চিত এই পণ্যটি ডিলিট করতে চান?")) {
+                productsRef.child(key).remove();
+            }
         }
-
+        
+        // পুরাতন local storage logic
+        // displayProducts(); // এখন আর দরকার নেই, Firebase নিজেই ডেটা লোড করছে।
     </script>
 </body>
 </html>
