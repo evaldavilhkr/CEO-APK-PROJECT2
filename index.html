@@ -90,7 +90,6 @@
                                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                         </div>
                     </div>
-                    
                     <button id="add-product-btn" type="submit"
                             class="w-full p-3 bg-secondary text-white font-bold rounded-lg hover:bg-primary transition">
                         পণ্য যোগ করুন
@@ -134,10 +133,27 @@
                     </table>
                 </div>
             </section>
+
+            <section class="mt-8">
+                <h2 class="text-xl font-semibold text-primary mb-4">ক্রয় হিস্ট্রি</h2>
+                <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-lg">
+                    <table id="purchase-history-table" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পণ্যের নাম</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পরিমাণ</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">তারিখ ও সময়</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchase-history-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </div>
 
     <script>
+        // --- Firebase ইনিশিয়ালাইজেশন ---
         const firebaseConfig = {
             apiKey: "AIzaSyAWq4Lkt0GCtjcZGvZijI2OO7-6Hu5molM",
             authDomain: "note-by-ceo-5b42a.firebaseapp.com",
@@ -152,6 +168,7 @@
         const database = firebase.database();
         const productsRef = database.ref('products');
         const paymentHistoryRef = database.ref('paymentHistory');
+        const purchaseHistoryRef = database.ref('purchaseHistory');
 
         const SECRET_PASSWORD = "CEO1212";
 
@@ -210,6 +227,7 @@
             productsRef.push(product).then(() => { productForm.reset(); showMessage('পণ্য যোগ হয়েছে।', 'success'); });
         });
 
+        // পণ্যের তালিকা লোড
         productsRef.on('value', (snapshot) => {
             tableBody.innerHTML = '';
             products = [];
@@ -245,6 +263,7 @@
             });
         });
 
+        // সার্চ লজিক
         document.getElementById('search-input').addEventListener('input', (e) => {
             const searchText = e.target.value.toLowerCase();
             const rows = document.querySelectorAll('#product-table-body tr');
@@ -254,7 +273,7 @@
             });
         });
 
-        // --- পেমেন্ট হিস্ট্রি ফিউচার (Code 3) ---
+        // পেমেন্ট হিস্ট্রি ফিউচার
         function updatePaymentHistory(productName, paymentAmount) {
             const paymentData = {
                 productName: productName,
@@ -279,6 +298,31 @@
             });
         });
 
+        // ক্রয় হিস্ট্রি ফিউচার (Code 4)
+        function updatePurchaseHistory(productName, quantity) {
+            const purchaseData = {
+                productName: productName,
+                quantity: quantity,
+                purchaseDate: new Date().toLocaleString('bn-BD')
+            };
+            purchaseHistoryRef.push(purchaseData);
+        }
+
+        purchaseHistoryRef.on('value', (snapshot) => {
+            const historyBody = document.getElementById('purchase-history-body');
+            historyBody.innerHTML = '';
+            snapshot.forEach((childSnapshot) => {
+                const purchaseData = childSnapshot.val();
+                const row = `
+                    <tr>
+                        <td class="px-4 py-2 text-sm">${purchaseData.productName}</td>
+                        <td class="px-4 py-2 text-sm">${purchaseData.quantity}</td>
+                        <td class="px-4 py-2 text-sm">${purchaseData.purchaseDate}</td>
+                    </tr>`;
+                historyBody.innerHTML += row;
+            });
+        });
+
         let modalContainer = document.createElement('div');
         modalContainer.className = 'hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         document.body.appendChild(modalContainer);
@@ -298,6 +342,28 @@
                     modalContainer.classList.add('hidden');
                     showMessage(`৳ ${amount} পেমেন্ট সফল।`, 'success');
                     updatePaymentHistory(product.productName, amount);
+                });
+            }
+        };
+
+        window.buyProduct = function(productKey) {
+            let quantity = parseInt(document.getElementById('modal-buy-quantity').value);
+            let product = products.find(p => p.key === productKey);
+            if (product && quantity > 0) {
+                let newQuantity = product.productQuantity + quantity;
+                let newTotalCost = newQuantity + product.productPrice;
+                let newDue = newTotalCost - product.payment;
+                let newPurchaseDate = new Date().toLocaleString('bn-BD');
+
+                productsRef.child(productKey).update({
+                    productQuantity: newQuantity,
+                    totalCost: parseFloat(newTotalCost.toFixed(2)),
+                    due: parseFloat(newDue.toFixed(2)),
+                    purchaseDate: newPurchaseDate
+                }).then(() => { 
+                    modalContainer.classList.add('hidden'); 
+                    showMessage(`"${product.productName}" এর পরিমাণ ${quantity} বাড়ানো হয়েছে।`, 'success');
+                    updatePurchaseHistory(product.productName, quantity);
                 });
             }
         };
@@ -329,20 +395,6 @@
                 </div>`;
             modalContainer.classList.remove('hidden');
         }
-
-        window.buyProduct = function(productKey) {
-            let quantity = parseInt(document.getElementById('modal-buy-quantity').value);
-            let product = products.find(p => p.key === productKey);
-            if (product && quantity > 0) {
-                let newQuantity = product.productQuantity + quantity;
-                let newTotalCost = newQuantity + product.productPrice;
-                productsRef.child(productKey).update({
-                    productQuantity: newQuantity,
-                    totalCost: parseFloat(newTotalCost.toFixed(2)),
-                    due: parseFloat((newTotalCost - product.payment).toFixed(2))
-                }).then(() => { modalContainer.classList.add('hidden'); showMessage('আপডেট সফল।', 'success'); });
-            }
-        };
 
         window.deleteProduct = function(productKey, name) {
             if (confirm(`আপনি কি "${name}" ডিলিট করতে চান?`)) {
