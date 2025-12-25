@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>APK BY CEO APON - ইনভেন্টরি ও পেমেন্ট হিস্ট্রি</title>
+    <title>APK BY CEO APON - ইনভেন্টরি</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
@@ -17,53 +17,50 @@
     <div id="app-container" class="max-w-6xl mx-auto bg-white p-4 sm:p-6 rounded-xl container-shadow">
         <header class="text-center pb-4 border-b border-gray-200 mb-6">
             <h1 class="text-3xl font-extrabold text-emerald-600">APK BY CEO APON</h1>
-            <p class="text-sm text-gray-500">ইনভেন্টরি এবং পার্মানেন্ট লেনদেন রেকর্ড</p>
+            <p class="text-sm text-gray-500">ইনভেন্টরি এবং পেমেন্ট হিস্ট্রি</p>
         </header>
 
-        <div id="message-box" class="hidden p-3 mb-4 rounded-lg font-semibold transition-all"></div>
+        <div id="message-box" class="hidden p-3 mb-4 rounded-lg font-semibold transition-all duration-300"></div>
 
         <div id="login-form" class="max-w-sm mx-auto p-6 bg-gray-50 rounded-lg shadow-inner">
             <label class="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড:</label>
-            <input type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" class="w-full p-3 border rounded-lg mb-4 outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 outline-none mb-4">
             <button id="login-btn" class="w-full p-3 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600 transition">লগইন</button>
         </div>
 
         <div id="app-content" class="hidden">
-            <section class="mb-6">
-                <input type="text" id="search-input" placeholder="পণ্য বা সাপ্লাইয়ার দিয়ে সার্চ করুন..." 
-                       class="w-full p-3 border-2 border-emerald-100 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+            <section class="mb-4">
+                <input type="text" id="search-input" placeholder="পণ্যের নাম বা সাপ্লাইয়ার দিয়ে সার্চ করুন..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 outline-none">
             </section>
 
-            <section class="mb-8 p-4 border border-emerald-200 rounded-xl bg-emerald-50/30">
-                <h2 class="text-xl font-semibold text-emerald-700 mb-4 border-b pb-2">নতুন পণ্য যোগ করুন</h2>
+            <section class="mb-8 p-4 border border-emerald-500 rounded-xl bg-green-50/50">
+                <h2 class="text-xl font-semibold text-emerald-600 mb-4 border-b pb-2">নতুন পণ্য যোগ করুন</h2>
                 <form id="product-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="product-name" placeholder="পণ্যের নাম" required class="p-2 border rounded-lg outline-none focus:ring-1 focus:ring-emerald-400">
-                        <input type="text" id="supplier-name" placeholder="সাপ্লাইয়ার নাম" class="p-2 border rounded-lg outline-none focus:ring-1 focus:ring-emerald-400">
+                        <input type="text" id="product-name" placeholder="পণ্যের নাম" required class="w-full p-2 border rounded-lg outline-none">
+                        <input type="text" id="supplier-name" placeholder="সাপ্লাইয়ার নাম" class="w-full p-2 border rounded-lg outline-none">
                     </div>
                     <div class="grid grid-cols-3 gap-4">
-                        <input type="number" id="product-quantity" placeholder="পরিমাণ" required min="1" class="p-2 border rounded-lg outline-none focus:ring-1 focus:ring-emerald-400">
-                        <input type="number" id="product-price" placeholder="ইউনিট মূল্য" required class="p-2 border rounded-lg outline-none focus:ring-1 focus:ring-emerald-400">
-                        <input type="number" id="payment" placeholder="পেমেন্ট" required class="p-2 border rounded-lg outline-none focus:ring-1 focus:ring-emerald-400">
+                        <input type="number" id="product-quantity" placeholder="পরিমাণ" required min="1" class="p-2 border rounded-lg outline-none">
+                        <input type="number" id="product-price" placeholder="ইউনিট মূল্য" required class="p-2 border rounded-lg outline-none">
+                        <input type="number" id="payment-input" placeholder="পেমেন্ট" required class="p-2 border rounded-lg outline-none">
                     </div>
                     <button type="submit" class="w-full p-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition">পণ্য যোগ করুন</button>
                 </form>
             </section>
 
             <section class="mb-8">
-                <h2 class="text-xl font-semibold text-emerald-700 mb-4">পণ্যের তালিকা</h2>
-                <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-lg">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-emerald-500">
+                <h2 class="text-xl font-semibold text-emerald-600 mb-4">পণ্যের তালিকা</h2>
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left">পণ্য / সাপ্লাইয়ার</th>
-                                <th class="px-4 py-3 text-center">পরিমাণ</th>
-                                <th class="px-4 py-3 text-center">মূল্য</th>
-                                <th class="px-4 py-3 text-center">মোট খরচ</th>
-                                <th class="px-4 py-3 text-center">পেমেন্ট</th>
-                                <th class="px-4 py-3 text-center">বাকি</th>
-                                <th class="px-4 py-3 text-center">তারিখ</th>
-                                <th class="px-4 py-3 text-center">অ্যাকশন</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase">পণ্য / সাপ্লাইয়ার</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase">পরিমাণ</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase">মোট খরচ</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase text-emerald-100">পেমেন্ট</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase">বাকি</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase">অ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody id="product-table-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -71,15 +68,15 @@
                 </div>
             </section>
 
-            <section>
-                <h2 class="text-xl font-semibold text-blue-700 mb-4 border-b-2 border-blue-100 pb-2">পেমেন্ট হিস্ট্রি (ডাটাবেস রেকর্ড)</h2>
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-emerald-600 mb-4 text-primary">পেমেন্ট হিস্ট্রি</h2>
                 <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-lg">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-slate-700 text-white">
+                    <table id="payment-history-table" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-emerald-600 text-white">
                             <tr>
-                                <th class="px-4 py-2 text-left !bg-slate-600">পণ্যের নাম</th>
-                                <th class="px-4 py-2 text-left !bg-slate-600">পেমেন্টের পরিমাণ</th>
-                                <th class="px-4 py-2 text-left !bg-slate-600">তারিখ ও সময়</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পণ্যের নাম</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পেমেন্টের পরিমাণ</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">তারিখ ও সময়</th>
                             </tr>
                         </thead>
                         <tbody id="payment-history-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -90,7 +87,7 @@
     </div>
 
     <script>
-        // --- Firebase Configuration ---
+        // আপনার দেওয়া Firebase কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyAWq4Lkt0GCtjcZGvZijI2OO7-6Hu5molM",
             authDomain: "note-by-ceo-5b42a.firebaseapp.com",
@@ -109,163 +106,135 @@
         const SECRET_PASSWORD = "CEO1212";
         let products = [];
 
-        // DOM Elements
-        const loginForm = document.getElementById('login-form');
-        const appContent = document.getElementById('app-content');
-        const tableBody = document.getElementById('product-table-body');
-        const historyBody = document.getElementById('payment-history-body');
-        const messageBox = document.getElementById('message-box');
-
-        function showMessage(text, type = 'success') {
-            messageBox.textContent = text;
-            messageBox.className = `p-3 mb-4 rounded-lg font-semibold transition-all ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => messageBox.classList.add('hidden'), 4000);
-        }
-
-        // লগইন লজিক
+        // লগইন ফাংশন
         document.getElementById('login-btn').onclick = () => {
             if (document.getElementById('password').value === SECRET_PASSWORD) {
-                loginForm.classList.add('hidden');
-                appContent.classList.remove('hidden');
-                showMessage("লগইন সফল হয়েছে!", "success");
-            } else {
-                alert("ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।");
-            }
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+            } else { alert("ভুল পাসওয়ার্ড!"); }
         };
 
-        // সার্চ লজিক
-        document.getElementById('search-input').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            const rows = tableBody.querySelectorAll('tr');
+        // মেসেজ দেখানোর ফাংশন
+        function showMessage(text, type) {
+            const msgBox = document.getElementById('message-box');
+            msgBox.textContent = text;
+            msgBox.className = `p-3 mb-4 rounded-lg font-semibold ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            msgBox.classList.remove('hidden');
+            setTimeout(() => msgBox.classList.add('hidden'), 3000);
+        }
+
+        // সার্চ বক্স ফিউচার
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const searchText = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#product-table-body tr');
             rows.forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
             });
-        };
+        });
 
-        // পণ্য যোগ করার ফাংশন
+        // পণ্য যোগ করা
         document.getElementById('product-form').onsubmit = (e) => {
             e.preventDefault();
             const pName = document.getElementById('product-name').value;
-            const q = parseInt(document.getElementById('product-quantity').value);
-            const pr = parseFloat(document.getElementById('product-price').value);
-            const pay = parseFloat(document.getElementById('payment').value);
-            const total = q + pr; // আপনার অরিজিনাল লজিক: quantity + price
+            const sName = document.getElementById('supplier-name').value || 'N/A';
+            const qty = parseInt(document.getElementById('product-quantity').value);
+            const price = parseFloat(document.getElementById('product-price').value);
+            const pay = parseFloat(document.getElementById('payment-input').value);
+            const total = qty * price;
 
-            const newProduct = {
+            productsRef.push({
                 productName: pName,
-                supplierName: document.getElementById('supplier-name').value || 'N/A',
-                productQuantity: q,
-                productPrice: pr,
+                supplierName: sName,
+                productQuantity: qty,
+                productPrice: price,
                 totalCost: total,
                 payment: pay,
                 due: total - pay,
-                purchaseDate: new Date().toLocaleString('bn-BD')
-            };
-
-            productsRef.push(newProduct).then(() => {
-                showMessage(`"${pName}" সফলভাবে যোগ করা হয়েছে।`);
-                e.target.reset();
+                date: new Date().toLocaleString('bn-BD')
             });
+            e.target.reset();
         };
 
-        // পণ্যের তালিকা রিয়েল-টাইম লোড
-        productsRef.on('value', (snap) => {
-            tableBody.innerHTML = ''; products = [];
-            snap.forEach(child => {
-                let p = child.val(); p.key = child.key;
+        // আপনার দেওয়া পেমেন্ট হিস্ট্রি আপডেট ফাংশন
+        function updatePaymentHistory(productName, paymentAmount) {
+            const paymentData = {
+                productName: productName,
+                paymentAmount: parseFloat(paymentAmount),
+                paymentDate: new Date().toLocaleString('bn-BD')
+            };
+            paymentHistoryRef.push(paymentData);
+        }
+
+        // পেমেন্ট করার ফাংশন
+        window.makePayment = function(productKey) {
+            const product = products.find(p => p.key === productKey);
+            const amountStr = prompt(`"${product.productName}" এর জন্য কত পেমেন্ট করতে চান? (বাকি: ৳${product.due})`);
+            const paymentAmount = parseFloat(amountStr);
+
+            if (!isNaN(paymentAmount) && paymentAmount > 0 && paymentAmount <= product.due) {
+                const newPayment = product.payment + paymentAmount;
+                const newDue = product.due - paymentAmount;
+                const newPaymentDate = new Date().toLocaleString('bn-BD');
+
+                productsRef.child(productKey).update({
+                    payment: newPayment,
+                    due: newDue,
+                    lastPaymentDate: newPaymentDate
+                })
+                .then(() => {
+                    showMessage(`৳ ${paymentAmount} পেমেন্ট সফল হয়েছে।`, 'success');
+                    updatePaymentHistory(product.productName, paymentAmount);
+                })
+                .catch(error => {
+                    showMessage('পেমেন্ট আপডেট করতে সমস্যা হয়েছে।', 'error');
+                    console.error("Payment Update Error:", error);
+                });
+            } else {
+                alert("সঠিক পেমেন্ট পরিমাণ দিন!");
+            }
+        };
+
+        // ডাটাবেস থেকে পণ্য লোড করা
+        productsRef.on('value', (snapshot) => {
+            const body = document.getElementById('product-table-body');
+            body.innerHTML = '';
+            products = [];
+            snapshot.forEach((child) => {
+                const p = child.val();
+                p.key = child.key;
                 products.push(p);
-                tableBody.insertAdjacentHTML('afterbegin', `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3"><div class="font-bold text-gray-800">${p.productName}</div><div class="text-xs text-gray-400">${p.supplierName}</div></td>
-                        <td class="px-4 py-3 text-center">${p.productQuantity}</td>
-                        <td class="px-4 py-3 text-center">৳${p.productPrice.toFixed(2)}</td>
-                        <td class="px-4 py-3 text-center font-bold text-emerald-600">৳${p.totalCost.toFixed(2)}</td>
-                        <td class="px-4 py-3 text-center text-emerald-500 font-semibold">৳${p.payment.toFixed(2)}</td>
-                        <td class="px-4 py-3 text-center font-bold ${p.due > 0 ? 'text-red-500' : 'text-emerald-500'}">৳${p.due.toFixed(2)}</td>
-                        <td class="px-4 py-3 text-center text-xs text-gray-500">${p.purchaseDate}</td>
-                        <td class="px-4 py-3 flex flex-col gap-1">
-                            <button onclick="openPaymentModal('${p.key}')" class="bg-indigo-500 text-white text-[10px] py-1 px-2 rounded hover:bg-indigo-600 ${p.due <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${p.due <= 0 ? 'disabled' : ''}>পেমেন্ট</button>
-                            <button onclick="deleteProduct('${p.key}')" class="bg-red-500 text-white text-[10px] py-1 px-2 rounded hover:bg-red-600">ডিলিট</button>
+                body.insertAdjacentHTML('afterbegin', `
+                    <tr class="text-sm">
+                        <td class="px-4 py-2"><b>${p.productName}</b><br><span class="text-xs text-gray-400">${p.supplierName}</span></td>
+                        <td class="px-4 py-2 text-center">${p.productQuantity}</td>
+                        <td class="px-4 py-2 text-center">৳${p.totalCost.toFixed(2)}</td>
+                        <td class="px-4 py-2 text-center text-emerald-600 font-bold">৳${p.payment.toFixed(2)}</td>
+                        <td class="px-4 py-2 text-center text-red-500 font-bold">৳${p.due.toFixed(2)}</td>
+                        <td class="px-4 py-2 text-center">
+                            <button onclick="makePayment('${p.key}')" class="bg-indigo-500 text-white px-2 py-1 rounded text-xs">পেমেন্ট</button>
                         </td>
                     </tr>
                 `);
             });
         });
 
-        // পেমেন্ট হিস্ট্রি রিয়েল-টাইম লোড (পার্মানেন্ট)
+        // আপনার দেওয়া পেমেন্ট হিস্ট্রি লোড করার ফাংশন
         paymentHistoryRef.on('value', (snapshot) => {
+            const historyBody = document.getElementById('payment-history-body');
             historyBody.innerHTML = '';
-            if(!snapshot.exists()) {
-                historyBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">কোনো হিস্ট্রি নেই</td></tr>';
-                return;
-            }
-            snapshot.forEach((child) => {
-                const data = child.val();
-                historyBody.insertAdjacentHTML('afterbegin', `
+            snapshot.forEach((childSnapshot) => {
+                const paymentData = childSnapshot.val();
+                const row = `
                     <tr class="border-b">
-                        <td class="px-4 py-2 font-medium">${data.productName}</td>
-                        <td class="px-4 py-2 text-emerald-600 font-bold">৳ ${data.paymentAmount.toFixed(2)}</td>
-                        <td class="px-4 py-2 text-xs text-gray-500">${data.paymentDate}</td>
+                        <td class="px-4 py-2 text-sm">${paymentData.productName}</td>
+                        <td class="px-4 py-2 text-sm text-emerald-600 font-bold">৳ ${paymentData.paymentAmount.toFixed(2)}</td>
+                        <td class="px-4 py-2 text-sm text-gray-500">${paymentData.paymentDate}</td>
                     </tr>
-                `);
+                `;
+                historyBody.insertAdjacentHTML('afterbegin', row);
             });
         });
-
-        // পেমেন্ট মডাল লজিক
-        let modal = document.createElement('div');
-        modal.className = "hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 transition-all";
-        document.body.appendChild(modal);
-
-        window.openPaymentModal = (key) => {
-            const p = products.find(x => x.key === key);
-            modal.innerHTML = `
-                <div class="bg-white p-6 rounded-xl w-full max-w-xs shadow-2xl">
-                    <h3 class="font-bold text-lg text-gray-800 mb-2">${p.productName}</h3>
-                    <p class="text-sm text-red-500 mb-4 font-semibold">বর্তমান বাকি: ৳${p.due.toFixed(2)}</p>
-                    <input type="number" id="pay-amt" class="w-full border-2 border-emerald-100 p-2 rounded-lg mb-4 outline-none focus:border-emerald-500" placeholder="টাকার পরিমাণ লিখুন">
-                    <div class="flex gap-2">
-                        <button onclick="modal.classList.add('hidden')" class="flex-1 bg-gray-200 p-2 rounded-lg font-semibold">বাতিল</button>
-                        <button onclick="makePayment('${key}')" class="flex-1 bg-indigo-500 text-white p-2 rounded-lg font-semibold hover:bg-indigo-600">পেমেন্ট নিশ্চিত</button>
-                    </div>
-                </div>`;
-            modal.classList.remove('hidden');
-        };
-
-        // পেমেন্ট প্রসেসিং এবং হিস্ট্রি আপডেট
-        window.makePayment = (key) => {
-            const amt = parseFloat(document.getElementById('pay-amt').value);
-            const p = products.find(x => x.key === key);
-            
-            if(amt > 0 && amt <= p.due) {
-                // ১. প্রোডাক্টের বাকি টাকা আপডেট
-                productsRef.child(key).update({
-                    payment: p.payment + amt,
-                    due: p.due - amt,
-                    lastPaymentDate: new Date().toLocaleString('bn-BD')
-                }).then(() => {
-                    // ২. পেমেন্ট হিস্ট্রি কালেকশনে নতুন রেকর্ড যোগ করা
-                    const historyData = {
-                        productName: p.productName,
-                        paymentAmount: amt,
-                        paymentDate: new Date().toLocaleString('bn-BD')
-                    };
-                    paymentHistoryRef.push(historyData);
-                    
-                    modal.classList.add('hidden');
-                    showMessage(`৳${amt} পেমেন্ট সফল হয়েছে!`);
-                });
-            } else {
-                alert("সঠিক পরিমাণ দিন! বাকির চেয়ে বেশি পেমেন্ট করা যাবে না।");
-            }
-        };
-
-        // ডিলিট ফাংশন
-        window.deleteProduct = (key) => {
-            if(confirm("আপনি কি নিশ্চিতভাবে এই লেনদেনটি ডিলিট করতে চান?")) {
-                productsRef.child(key).remove().then(() => showMessage("লেনদেনটি ডিলিট করা হয়েছে।", "error"));
-            }
-        };
     </script>
 </body>
 </html>
