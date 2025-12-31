@@ -127,6 +127,7 @@
                                 <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পণ্যের নাম</th>
                                 <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পেমেন্টের পরিমাণ</th>
                                 <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">তারিখ ও সময়</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider">অ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody id="payment-history-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -143,6 +144,7 @@
                                 <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পণ্যের নাম</th>
                                 <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">পরিমাণ</th>
                                 <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">তারিখ ও সময়</th>
+                                <th class="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider">অ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody id="purchase-history-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -211,7 +213,7 @@
             let productQuantity = parseInt(document.getElementById('product-quantity').value);
             let productPrice = parseFloat(document.getElementById('product-price').value);
             let payment = parseFloat(document.getElementById('payment').value);
-            let totalCost = productQuantity + productPrice; 
+            let totalCost = productQuantity * productPrice; // Corrected: price * quantity
             let due = totalCost - payment;
             
             let product = {
@@ -288,17 +290,30 @@
             historyBody.innerHTML = '';
             snapshot.forEach((childSnapshot) => {
                 const paymentData = childSnapshot.val();
+                const key = childSnapshot.key;
                 const row = `
-                    <tr>
+                    <tr class="hover:bg-gray-50">
                         <td class="px-4 py-2 text-sm">${paymentData.productName}</td>
                         <td class="px-4 py-2 text-sm">৳ ${paymentData.paymentAmount.toFixed(2)}</td>
                         <td class="px-4 py-2 text-sm">${paymentData.paymentDate}</td>
+                        <td class="px-4 py-2 text-center">
+                            <button onclick="deletePaymentHistory('${key}')" class="bg-danger text-white px-2 py-1 rounded text-xs">ডিলিট</button>
+                        </td>
                     </tr>`;
                 historyBody.innerHTML += row;
             });
         });
 
-        // ক্রয় হিস্ট্রি ফিউচার (Code 4)
+        // পেমেন্ট হিস্ট্রি ডিলিট ফাংশন
+        window.deletePaymentHistory = function(key) {
+            if (confirm("আপনি কি এই পেমেন্ট হিস্ট্রি ডিলিট করতে চান? (দ্রষ্টব্য: এটি মূল ব্যালেন্স পরিবর্তন করবে না)")) {
+                paymentHistoryRef.child(key).remove().then(() => {
+                    showMessage("পেমেন্ট হিস্ট্রি মুছে ফেলা হয়েছে।", "success");
+                });
+            }
+        };
+
+        // ক্রয় হিস্ট্রি ফিউচার
         function updatePurchaseHistory(productName, quantity) {
             const purchaseData = {
                 productName: productName,
@@ -313,15 +328,28 @@
             historyBody.innerHTML = '';
             snapshot.forEach((childSnapshot) => {
                 const purchaseData = childSnapshot.val();
+                const key = childSnapshot.key;
                 const row = `
-                    <tr>
+                    <tr class="hover:bg-gray-50">
                         <td class="px-4 py-2 text-sm">${purchaseData.productName}</td>
                         <td class="px-4 py-2 text-sm">${purchaseData.quantity}</td>
                         <td class="px-4 py-2 text-sm">${purchaseData.purchaseDate}</td>
+                        <td class="px-4 py-2 text-center">
+                            <button onclick="deletePurchaseHistory('${key}')" class="bg-danger text-white px-2 py-1 rounded text-xs">ডিলিট</button>
+                        </td>
                     </tr>`;
                 historyBody.innerHTML += row;
             });
         });
+
+        // ক্রয় হিস্ট্রি ডিলিট ফাংশন
+        window.deletePurchaseHistory = function(key) {
+            if (confirm("আপনি কি এই ক্রয় হিস্ট্রি ডিলিট করতে চান?")) {
+                purchaseHistoryRef.child(key).remove().then(() => {
+                    showMessage("ক্রয় হিস্ট্রি মুছে ফেলা হয়েছে।", "success");
+                });
+            }
+        };
 
         let modalContainer = document.createElement('div');
         modalContainer.className = 'hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
@@ -343,6 +371,8 @@
                     showMessage(`৳ ${amount} পেমেন্ট সফল।`, 'success');
                     updatePaymentHistory(product.productName, amount);
                 });
+            } else {
+                alert("সঠিক পরিমাণ লিখুন (বাকি টাকার বেশি হওয়া যাবে না)।");
             }
         };
 
@@ -351,7 +381,7 @@
             let product = products.find(p => p.key === productKey);
             if (product && quantity > 0) {
                 let newQuantity = product.productQuantity + quantity;
-                let newTotalCost = newQuantity + product.productPrice;
+                let newTotalCost = newQuantity * product.productPrice; // Corrected: price * quantity
                 let newDue = newTotalCost - product.payment;
                 let newPurchaseDate = new Date().toLocaleString('bn-BD');
 
@@ -373,6 +403,7 @@
             modalContainer.innerHTML = `
                 <div class="bg-white p-6 rounded-xl w-full max-w-sm">
                     <h3 class="font-bold mb-4">পেমেন্ট: ${product.productName}</h3>
+                    <p class="text-xs mb-2 text-red-500">বাকি আছে: ৳ ${product.due.toFixed(2)}</p>
                     <input type="number" id="modal-payment-amount" class="w-full p-2 border rounded mb-4" placeholder="পরিমাণ" />
                     <div class="flex justify-end gap-2">
                         <button onclick="modalContainer.classList.add('hidden')" class="p-2 bg-gray-200 rounded">বাতিল</button>
@@ -397,8 +428,10 @@
         }
 
         window.deleteProduct = function(productKey, name) {
-            if (confirm(`আপনি কি "${name}" ডিলিট করতে চান?`)) {
-                productsRef.child(productKey).remove();
+            if (confirm(`আপনি কি "${name}" এবং এর যাবতীয় তথ্য ডিলিট করতে চান?`)) {
+                productsRef.child(productKey).remove().then(() => {
+                    showMessage("পণ্য মুছে ফেলা হয়েছে।", "success");
+                });
             }
         };
     </script>
