@@ -3,8 +3,8 @@
   "short_name": "NoteBy CEO",
   "start_url": "/CEO-APK-PROJECT2/",
   "display": "standalone",
-  "background_color": "#10b981",
-  "theme_color": "#10b981",
+  "background_color": "#ffffff",
+  "theme_color": "#0cae4e",
   "icons": [
     {
       "src": "icon-192.png",
